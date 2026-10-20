@@ -22,7 +22,7 @@ except ImportError:
 관제 보고는 로컬 파이썬 웹 서버를 통해 HTML 화면에 전송합니다.
 QR은 RoboDog 공개 API로 읽습니다.
 공개 API에 MP3 파일 재생 기능이 없어 현재는 내장 인사 소리로 대체합니다.
-재난 라디오 신호는 위치 1(A/B)·2(B/C)의 활성 경보로 저장합니다. 영향 배송지에서 대상 CLASS를 확인하면 빨간 LED와 짖기 소리로 대피 알림 후 기존 배송 절차를 이어갑니다.
+재난 라디오 게이트웨이의 EMERGENCY:E1/F2/G1/H2 신호는 로보독을 정지시키고 관제 명령을 기다립니다. 대피 안내 명령은 현재 배송 계획에 포함된 영향 지점을 방문해 빨간 LED와 짖기 소리로 알린 뒤 배송 경로를 이어갑니다.
 """
 
 ROBOT_PORT = os.environ.get("ROBODOG_PORT", "COM8").strip() or "None"
@@ -46,6 +46,7 @@ QR_RETRIES = 3
 EVACUATION_BARK_COUNT = 3
 REDIRECT_REQUESTED = "REDIRECT"
 RETURN_HOME_REQUESTED = "RETURN_HOME"
+EMERGENCY_INTERRUPTED = "EMERGENCY_INTERRUPTED"
 DELIVERY_SOUND_TRACK = 안녕
 LOG_FILE = Path("pawcare_delivery_log.csv")
 TILT_LOG_FILE = Path("pawcare_tilt_log.csv")
@@ -80,8 +81,7 @@ except NameError:
     )
 DASHBOARD_FILE = SCRIPT_DIR / "pawcare_control.html"
 LOG_FILE = SCRIPT_DIR / "pawcare_delivery_log.csv"
-# Read newline-delimited OBS packets from the PC-attached micro:bit (COM6 default).
-# The supplied standalone Python reference also reads this OBS format; it is not the sender.
+# Read newline-delimited emergency or observation packets from the PC-attached micro:bit (COM6 default).
 MICROBIT_PORT = os.environ.get("MICROBIT_PORT", "COM6").strip()
 MICROBIT_BAUDRATE = int(os.environ.get("MICROBIT_BAUDRATE", "115200"))
 MICROBIT_RECONNECT_SECONDS = 2.0
@@ -127,6 +127,10 @@ _last_tilt_log = 0.0
 stop_requested = threading.Event()
 hazard_resume = threading.Event()
 hazard_resume.set()
+emergency_hold = threading.Event()
+emergency_decision_ready = threading.Event()
+emergency_command_lock = threading.Lock()
+pending_emergency_command = None
 status_lock = threading.Lock()
 status = {
     "connected": False, "busy": False, "state": "대기", "current_area": "출발점",
@@ -134,16 +138,18 @@ status = {
     "heading_deg": 0.0, "trail": [{"x": 0.0, "y": 0.0}],
     "course_width_cm": COURSE_SIDE_CM, "course_height_cm": COURSE_SIDE_CM,
     "course_points": {"start": [4, 4], "A": [46, 4], "B": [46, 46], "C": [4, 46]},
+    "delivery_areas": [],
     "hazard_wait": False, "hazard_clear_confirmed": False,
     "can_redirect": False, "redirect_area": None,
     "microbit_connected": False, "microbit_port": MICROBIT_PORT or "미설정",
     "microbit_baudrate": MICROBIT_BAUDRATE,
-    "microbit_status": "관측소 micro:bit COM6 연결 대기", "microbit_last_rx": "",
+    "microbit_status": "재난 수신 게이트웨이 COM6 연결 대기", "microbit_last_rx": "",
     "microbit_sensor": None,
     "observation_stations": {"1": None, "2": None},
     "active_emergency": None, "active_emergencies": {}, "emergency_history": [],
+    "emergency_waiting": False, "emergency_command": None,
     "last_evacuation_alert": None,
-    "head_led_on": False,
+    "head_led_on": False, "head_led_mode": "꺼짐",
     "last_event_id": 0, "events": [],
 }
 job_thread = None
@@ -269,6 +275,7 @@ def start_delivery_job(mode, area, side_x, side_y, course_points):
             can_redirect=False, redirect_area=None,
             course_width_cm=side_x, course_height_cm=side_y,
             course_points=course_points,
+            delivery_areas=(list(("A", "B", "C")) if mode == "sequential" else [area]),
         )
         job_thread = threading.Thread(
             target=run_job,
@@ -287,7 +294,7 @@ def request_area_redirect(area, source="관제 화면"):
     with status_lock:
         can_redirect = (
             status.get("busy")
-            and not status.get("hazard_wait")
+            and (not status.get("hazard_wait") or (area == "HOME" and source == "재난 관제 명령"))
             and not stop_requested.is_set()
             and (area == "HOME" or status.get("can_redirect"))
         )
@@ -360,6 +367,7 @@ def refresh_active_emergency_locked():
 
 def register_emergency_signal(payload):
     """Record an alert, keep it active by zone, and publish affected delivery areas."""
+    global pending_emergency_command
     raw = "".join(ch for ch in str(payload) if ch.isprintable()).strip()[:160]
     compact_signal = re.fullmatch(r"([EFGH])([12])", raw.upper())
     if compact_signal:
@@ -390,6 +398,12 @@ def register_emergency_signal(payload):
     affected_areas = list(EMERGENCY_AREAS.get(location_code, ()))
     affected_text = ", ".join(affected_areas) if affected_areas else "대상 배송지 미지정"
     detail = f"{label} 신호 · 위치: {location} · 영향 배송지: {affected_text}"
+    # Stop before publishing the emergency into the dashboard status snapshot.
+    stop_dog()
+    emergency_hold.set()
+    emergency_decision_ready.clear()
+    with emergency_command_lock:
+        pending_emergency_command = None
     record("EMERGENCY_SIGNAL", f"{disaster_code} | {location} | 영향 배송지: {affected_text} | {raw}")
     with status_lock:
         status["last_event_id"] += 1
@@ -406,7 +420,16 @@ def register_emergency_signal(payload):
         refresh_active_emergency_locked()
         status["emergency_history"].insert(0, dict(event))
         status["emergency_history"] = status["emergency_history"][:8]
+        status["emergency_waiting"] = True
+        status["emergency_command"] = None
+        status["state"] = "재난 신호 수신 · 관제 명령 대기"
     print(f"\n[재난 신호 수신] {detail}")
+    show_emergency_eye_pattern(disaster_code)
+    report_control_center("EMERGENCY_STOPPED", f"{detail} · 로보독 정지, 관제 명령 대기")
+    update_status(
+        emergency_waiting=True, emergency_command=None,
+        state="재난 신호 수신 · 관제 명령 대기", can_redirect=False,
+    )
     return True
 
 
@@ -587,7 +610,17 @@ def clear_active_emergency(location_code):
         status["events"].append(event)
         status["events"] = status["events"][-40:]
         refresh_active_emergency_locked()
+        no_active_radio_alerts = not active_events
     record("EMERGENCY_CLEARED", event["detail"])
+    if no_active_radio_alerts:
+        emergency_hold.clear()
+        emergency_decision_ready.set()
+        update_status(emergency_waiting=False, emergency_command=None)
+        try:
+            clear_head_led()
+            update_status(head_led_on=False, head_led_mode="꺼짐")
+        except Exception as exc:
+            print("재난 해제 후 눈 LED 끄기 오류:", exc)
     return True
 
 
@@ -611,6 +644,39 @@ def active_emergency_for_area(area):
                     "time": sample.get("received_at", ""),
                 })
     return max(matches, key=lambda event: event.get("time", "")) if matches else None
+
+
+def queue_emergency_command(action, location_code):
+    """Queue a dashboard response for an active radio alert while a job is running."""
+    global pending_emergency_command
+    location_code = str(location_code)
+    if action not in ("evacuate", "emergency_return"):
+        return False, "지원하지 않는 재난 대응 명령입니다."
+    with status_lock:
+        emergency = status.get("active_emergencies", {}).get(location_code)
+        busy = bool(status.get("busy"))
+    if emergency is None:
+        return False, f"위치 {location_code}에 활성 라디오 재난 신호가 없습니다."
+    if not busy:
+        return False, "재난 대응은 로보독이 배송 운행 중일 때 실행할 수 있습니다. 먼저 배송을 시작해 주세요."
+    with emergency_command_lock:
+        pending_emergency_command = {
+            "action": action, "location_code": location_code,
+        }
+        emergency_decision_ready.set()
+    emergency_hold.set()
+    stop_dog()
+    label = "대피 안내" if action == "evacuate" else "출발점 복귀"
+    update_status(
+        emergency_waiting=True, emergency_command=label,
+        state=f"재난 대응 · {label} 준비", can_redirect=False,
+    )
+    report_control_center("EMERGENCY_COMMAND_QUEUED", f"위치 {location_code} 재난 대응: {label}")
+    update_status(
+        emergency_waiting=True, emergency_command=label,
+        state=f"재난 대응 · {label} 준비", can_redirect=False,
+    )
+    return True, f"{label} 명령을 로보독에 전달했습니다."
 
 
 def microbit_serial_receiver():
@@ -841,6 +907,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
             message = f"위치 {location_code} 재난 신호를 해제했습니다." if cleared else f"위치 {location_code}에 활성 재난 신호가 없습니다."
             self._send_json(200, {"ok": True, "message": message})
             return
+        if action in ("evacuate", "emergency_return"):
+            location_code = str(command.get("location_code", ""))
+            if location_code not in EMERGENCY_AREAS:
+                self._send_json(400, {"error": "재난 위치 번호 1 또는 2가 필요합니다."})
+                return
+            queued, message = queue_emergency_command(action, location_code)
+            self._send_json(202 if queued else 409, {"ok": queued, "message": message})
+            return
         if action == "start":
             mode = command.get("mode", "sequential")
             area = str(command.get("area", "A")).upper()
@@ -893,11 +967,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if action == "stop":
             stop_requested.set()
             hazard_resume.set()
+            emergency_hold.clear()
+            emergency_decision_ready.set()
             stop_dog()
             update_status(
                 state="정지 요청", hazard_wait=False,
                 hazard_clear_confirmed=False, can_redirect=False,
-                redirect_area=None,
+                redirect_area=None, emergency_waiting=False,
+                emergency_command=None,
             )
             self._send_json(200, {"ok": True, "message": "정지를 요청했습니다."})
             return
@@ -959,6 +1036,58 @@ def clear_head_led():
     time.sleep(0.3)
 
 
+EMERGENCY_EYE_FRAMES = {
+    "EARTHQUAKE": (
+        [0x02, 0xF2, 0x82, 0x9E, 0x82, 0xF2, 0x02, 0x02],
+        [0x00, 0x22, 0x52, 0x22, 0x02, 0xFA, 0x22, 0x22],
+    ),
+    "HEAT": (
+        [0x02, 0xF2, 0x82, 0x9E, 0x82, 0xF2, 0x02, 0x02],
+        [0x00, 0x22, 0x52, 0x22, 0x02, 0xFA, 0x22, 0x22],
+    ),
+    "FIRE": (
+        [0x20, 0x70, 0x00, 0x74, 0x54, 0x77, 0x24, 0xFC],
+        [0x00, 0xF5, 0x15, 0x27, 0x55, 0x8D, 0x05, 0x05],
+    ),
+    "GAS": (
+        [0xF4, 0x14, 0x14, 0x17, 0x14, 0x34, 0x24, 0x44],
+        [0x18, 0x18, 0x24, 0x24, 0xC3, 0x81, 0x00, 0xFF],
+    ),
+}
+
+
+def show_emergency_eye_pattern(disaster_code):
+    """Display the requested E/F/G/H emergency bitmap on RoboDog's eyes."""
+    frames = EMERGENCY_EYE_FRAMES.get(disaster_code)
+    if not frames:
+        return False
+    opened = False
+    try:
+        with status_lock:
+            connected = bool(status.get("connected"))
+        if not connected:
+            with job_lock:
+                with status_lock:
+                    connected = bool(status.get("connected"))
+                if not connected:
+                    opened = bool(dog.Open(ROBOT_PORT))
+                    if not opened:
+                        raise RuntimeError(f"로보독 {ROBOT_PORT} 포트 연결 실패")
+        dog.headLEDDraw(bytearray(frames[0]), bytearray(frames[1]))
+        update_status(head_led_on=True, head_led_mode=DISASTER_LABELS[disaster_code])
+        return True
+    except Exception as exc:
+        print(f"재난 눈 LED 표시 오류: {exc}")
+        update_status(head_led_mode=f"표시 실패: {DISASTER_LABELS[disaster_code]}")
+        return False
+    finally:
+        if opened:
+            try:
+                dog.Close()
+            except Exception:
+                pass
+
+
 def set_head_led(enabled):
     """Set the eye display over the active RoboDog session or open it while idle."""
     with job_lock:
@@ -981,12 +1110,12 @@ def set_head_led(enabled):
                 # RoboDog 공개 API의 내장 표정으로 눈 LED를 켭니다.
                 dog.headLEDExp(초롱초롱)
                 time.sleep(0.3)
-                update_status(head_led_on=True)
+                update_status(head_led_on=True, head_led_mode="초롱초롱")
                 record("HEAD_LED_ON", "초롱초롱 표정")
                 return True, "눈 LED를 켰습니다."
 
             clear_head_led()
-            update_status(head_led_on=False)
+            update_status(head_led_on=False, head_led_mode="꺼짐")
             record("HEAD_LED_OFF", "눈 LED 초기화")
             return True, "눈 LED를 껐습니다."
         except Exception as exc:
@@ -1002,6 +1131,8 @@ def set_head_led(enabled):
 def set_eye_led_for_mode(enabled):
     """운행 중 인식 모드에 맞춰 눈 LED를 켜거나 끕니다. 이미 같은 상태면 건너뜁니다."""
     with status_lock:
+        if status.get("active_emergencies"):
+            return
         if status.get("head_led_on") == enabled:
             return
     try:
@@ -1012,7 +1143,7 @@ def set_eye_led_for_mode(enabled):
         else:
             clear_head_led()
             record("HEAD_LED_OFF", "인물 인식 모드 자동 끄기")
-        update_status(head_led_on=enabled)
+        update_status(head_led_on=enabled, head_led_mode="초롱초롱" if enabled else "꺼짐")
     except Exception as exc:
         print("눈 LED 자동 제어 오류:", exc)
 
@@ -1152,6 +1283,14 @@ def rotate_by(degrees):
     # Short signed relative turns also let us check stop/redirect between steps.
     remaining = requested
     while remaining:
+        if emergency_hold.is_set():
+            emergency_result = process_pending_emergency_command()
+            if emergency_result == "HOME":
+                return REDIRECT_REQUESTED
+            if emergency_result == "EVACUATED":
+                return EMERGENCY_INTERRUPTED
+            if emergency_result == "ABORT":
+                return False
         if stop_requested.is_set():
             stop_dog()
             return False
@@ -1180,8 +1319,28 @@ def move_forward_cm(distance_cm):
     dt = 0.05
     try:
         while travelled < target:
+            if emergency_hold.is_set():
+                stop_dog()
+                emergency_result = process_pending_emergency_command()
+                if emergency_result == "HOME":
+                    return REDIRECT_REQUESTED
+                if emergency_result == "EVACUATED":
+                    return EMERGENCY_INTERRUPTED
+                if emergency_result == "ABORT":
+                    return False
             if not handle_hazard_during_move():
+                if peek_redirect_area() == "HOME":
+                    return REDIRECT_REQUESTED
                 return False
+            if emergency_hold.is_set():
+                stop_dog()
+                emergency_result = process_pending_emergency_command()
+                if emergency_result == "HOME":
+                    return REDIRECT_REQUESTED
+                if emergency_result == "EVACUATED":
+                    return EMERGENCY_INTERRUPTED
+                if emergency_result == "ABORT":
+                    return False
             if peek_redirect_area():
                 stop_dog()
                 return REDIRECT_REQUESTED
@@ -1230,48 +1389,66 @@ def follow_map_path(points):
     global current_heading
     update_status(can_redirect=True, state="경로 이동 중")
     for index, (target_x, target_y) in enumerate(points, start=1):
-        if stop_requested.is_set():
-            update_status(can_redirect=False)
-            return False
-        if peek_redirect_area():
-            stop_dog()
-            update_status(can_redirect=False)
-            return REDIRECT_REQUESTED
-        dx = target_x - map_x_cm
-        dy = target_y - map_y_cm
-        distance = math.hypot(dx, dy)
-        if distance < 1.0:
-            continue
-        target_heading = math.degrees(math.atan2(dy, dx))
-        turn = angle_error(target_heading, current_heading)
-        print(
-            f"[지도 구간 {index}] 목표=({target_x:.1f}, {target_y:.1f})cm, "
-            f"현재 추정=({map_x_cm:.1f}, {map_y_cm:.1f})cm, 거리={distance:.1f}cm, "
-            f"현재 방향={current_heading % 360:.1f}°, 목표 방향={target_heading % 360:.1f}°, "
-            f"회전={turn:+.1f}°"
-        )
-        rotated = rotate_by(turn)
-        if rotated == REDIRECT_REQUESTED:
-            stop_dog()
-            update_status(can_redirect=False)
-            return REDIRECT_REQUESTED
-        if not rotated:
-            if close_redirect_window():
+        while True:
+            if stop_requested.is_set():
+                update_status(can_redirect=False)
+                return False
+            if emergency_hold.is_set():
+                emergency_result = process_pending_emergency_command()
+                if emergency_result == "HOME":
+                    update_status(can_redirect=False)
+                    return REDIRECT_REQUESTED
+                if emergency_result == "EVACUATED":
+                    continue
+                if emergency_result == "ABORT":
+                    update_status(can_redirect=False)
+                    return False
+            if peek_redirect_area():
                 stop_dog()
+                update_status(can_redirect=False)
                 return REDIRECT_REQUESTED
-            update_status(can_redirect=False)
-            return False
-        moved = move_forward_cm(distance)
-        if moved == REDIRECT_REQUESTED:
-            stop_dog()
-            update_status(can_redirect=False)
-            return REDIRECT_REQUESTED
-        if not moved:
-            if close_redirect_window():
+            dx = target_x - map_x_cm
+            dy = target_y - map_y_cm
+            distance = math.hypot(dx, dy)
+            if distance < 1.0:
+                break
+            target_heading = math.degrees(math.atan2(dy, dx))
+            turn = angle_error(target_heading, current_heading)
+            print(
+                f"[지도 구간 {index}] 목표=({target_x:.1f}, {target_y:.1f})cm, "
+                f"현재 추정=({map_x_cm:.1f}, {map_y_cm:.1f})cm, 거리={distance:.1f}cm, "
+                f"현재 방향={current_heading % 360:.1f}°, 목표 방향={target_heading % 360:.1f}°, "
+                f"회전={turn:+.1f}°"
+            )
+            rotated = rotate_by(turn)
+            if rotated == EMERGENCY_INTERRUPTED:
+                continue
+            if rotated == REDIRECT_REQUESTED:
                 stop_dog()
+                update_status(can_redirect=False)
                 return REDIRECT_REQUESTED
-            update_status(can_redirect=False)
-            return False
+            if not rotated:
+                if close_redirect_window():
+                    stop_dog()
+                    return REDIRECT_REQUESTED
+                update_status(can_redirect=False)
+                return False
+            moved = move_forward_cm(distance)
+            if moved == EMERGENCY_INTERRUPTED:
+                continue
+            if moved == REDIRECT_REQUESTED:
+                stop_dog()
+                update_status(can_redirect=False)
+                return REDIRECT_REQUESTED
+            if not moved:
+                if close_redirect_window():
+                    stop_dog()
+                    return REDIRECT_REQUESTED
+                update_status(can_redirect=False)
+                return False
+            if math.hypot(target_x - map_x_cm, target_y - map_y_cm) >= 1.0:
+                continue
+            break
     if close_redirect_window():
         stop_dog()
         return REDIRECT_REQUESTED
@@ -1293,9 +1470,16 @@ def wait_for_target_person(area):
     set_eye_led_for_mode(False)
     print(f"{AREA_NAME[area]}에서 인물 카드 CLASS{target}을 기다립니다 ({PERSON_TIMEOUT}초).")
     while time.monotonic() < deadline:
+        emergency_result = process_pending_emergency_command()
+        if emergency_result == "HOME":
+            return RETURN_HOME_REQUESTED
+        if emergency_result == "ABORT":
+            return "ABORT"
         if peek_redirect_area() == "HOME":
             return RETURN_HOME_REQUESTED
         if not handle_hazard_during_move():
+            if peek_redirect_area() == "HOME":
+                return RETURN_HOME_REQUESTED
             return "ABORT"
         log_tilt("인물 대기")
         found = get_class()
@@ -1309,6 +1493,9 @@ def wait_for_target_person(area):
 
 
 def greet(dog):
+    emergency_result = process_pending_emergency_command()
+    if emergency_result in ("HOME", "ABORT"):
+        return
     print("로보독: 반가워요! 안부 카드와 배송 물품을 가져왔어요.")
     try:
         dog.bodyLED((0, 200, 0))
@@ -1321,9 +1508,9 @@ def greet(dog):
         print("인사 동작 오류:", exc)
 
 
-def perform_evacuation_alert(area):
-    """After the destination person card is recognized, bark and light for an active zone alert."""
-    emergency = active_emergency_for_area(area)
+def perform_evacuation_alert(area, emergency=None):
+    """Stop at an affected delivery point and issue the active evacuation warning."""
+    emergency = emergency or active_emergency_for_area(area)
     if emergency is None:
         return False
 
@@ -1346,7 +1533,7 @@ def perform_evacuation_alert(area):
 
     detail = (
         f"{emergency.get('label', '재난')} 위치 {emergency.get('location_code')} · "
-        f"{AREA_NAME[area]} CLASS{TARGET_CLASS[area]} 인식 · "
+        f"{AREA_NAME[area]} 대피 안내 지점 도착 · "
         f"빨간 LED 및 짖기 {EVACUATION_BARK_COUNT}회"
     )
     if details:
@@ -1359,6 +1546,133 @@ def perform_evacuation_alert(area):
     report_control_center("EVACUATION_ALERT", detail)
     update_status(state="대피 알림 완료")
     return True
+
+
+def process_pending_emergency_command():
+    """Hold for the dashboard, then evacuate affected points or redirect home."""
+    if not emergency_hold.is_set():
+        return None
+    stop_dog()
+    update_status(
+        emergency_waiting=True,
+        state="재난 신호 수신 · 관제 명령 대기",
+        can_redirect=False,
+    )
+    while not stop_requested.is_set() and emergency_hold.is_set():
+        if not emergency_decision_ready.wait(0.1):
+            continue
+        with emergency_command_lock:
+            command = pending_emergency_command
+            emergency_decision_ready.clear()
+        if not command:
+            if not emergency_hold.is_set():
+                return None
+            continue
+
+        action = command.get("action")
+        location_code = str(command.get("location_code", ""))
+        with status_lock:
+            emergency = status.get("active_emergencies", {}).get(location_code)
+            course_points = dict(status.get("course_points", {}))
+            planned_areas = list(status.get("delivery_areas", []))
+        if emergency is None:
+            emergency_hold.clear()
+            update_status(
+                emergency_waiting=False, emergency_command=None,
+                state="활성 재난 신호 없음",
+            )
+            report_control_center(
+                "EMERGENCY_COMMAND_CANCELLED",
+                f"위치 {location_code} 재난 신호가 해제되어 명령을 취소했습니다.",
+            )
+            return "ABORT"
+
+        emergency_hold.clear()
+        update_status(
+            emergency_waiting=False,
+            emergency_command="대피 안내 실행" if action == "evacuate" else "출발점 복귀",
+            state="대피 안내 경로 계산 중" if action == "evacuate" else "재난 상황 출발점 복귀 중",
+            can_redirect=True,
+        )
+        if action == "emergency_return":
+            report_control_center(
+                "EMERGENCY_RETURN_START",
+                f"{emergency.get('label', '재난')} 위치 {location_code} · 출발점으로 복귀",
+            )
+            request_area_redirect("HOME", source="재난 관제 명령")
+            return "HOME"
+
+        try:
+            points = {
+                key: (float(value[0]), float(value[1]))
+                for key, value in course_points.items()
+                if key in ("start", "A", "B", "C")
+            }
+            relative_points = points_relative_to_start(points)
+        except (KeyError, TypeError, ValueError, IndexError):
+            emergency_hold.set()
+            update_status(
+                emergency_waiting=True, emergency_command=None,
+                state="대피 경로 좌표 오류 · 관제 명령 대기",
+            )
+            report_control_center(
+                "EMERGENCY_ROUTE_ERROR",
+                "출발점 및 A/B/C 지도 좌표를 읽지 못했습니다.",
+            )
+            return "ABORT"
+
+        affected_areas = list(emergency.get("affected_areas", []))
+        if not affected_areas:
+            affected_areas = list(EMERGENCY_AREAS.get(location_code, ()))
+        if planned_areas:
+            affected_areas = [area for area in affected_areas if area in planned_areas]
+        if not affected_areas:
+            update_status(emergency_command=None, can_redirect=False)
+            report_control_center(
+                "EVACUATION_NO_TARGET",
+                f"위치 {location_code} 영향 배송지는 이번 운행 목적지에 포함되지 않아 이동하지 않습니다.",
+            )
+            return "EVACUATED"
+
+        report_control_center(
+            "EVACUATION_ROUTE_START",
+            f"위치 {location_code} 영향 배송지 순서: {'→'.join(affected_areas)}",
+        )
+        for area in affected_areas:
+            if area not in relative_points:
+                continue
+            update_status(current_area=area, state=f"{area} 지역 대피 안내 장소로 이동 중")
+            route_result = follow_map_path([relative_points[area]])
+            if route_result == REDIRECT_REQUESTED:
+                return "HOME" if peek_redirect_area() == "HOME" else "ABORT"
+            if not route_result:
+                update_status(
+                    emergency_waiting=True, emergency_command=None,
+                    state="대피 경로 이동 실패 · 관제 명령 대기",
+                )
+                emergency_hold.set()
+                report_control_center(
+                    "EVACUATION_ROUTE_ABORTED",
+                    f"{area} 지역 대피 안내 장소에 도착하지 못했습니다.",
+                )
+                return "ABORT"
+            update_status(current_area=area, state=f"{area} 지역 대피 안내 중")
+            report_control_center("EVACUATION_ARRIVED", f"{AREA_NAME[area]} 대피 안내 지점 도착")
+            perform_evacuation_alert(area, emergency)
+
+        update_status(emergency_command=None, can_redirect=False)
+        report_control_center(
+            "EVACUATION_ROUTE_DONE",
+            f"위치 {location_code} 영향 배송지 대피 안내 완료",
+        )
+        return "EVACUATED"
+
+    emergency_hold.clear()
+    emergency_decision_ready.set()
+    if not stop_requested.is_set():
+        update_status(emergency_waiting=False, emergency_command=None)
+        return None
+    return "ABORT"
 
 
 def report_missed_evacuation_target(area):
@@ -1396,6 +1710,11 @@ def wait_for_go_qr():
 
         deadline = time.monotonic() + QR_TIMEOUT
         while time.monotonic() < deadline:
+            emergency_result = process_pending_emergency_command()
+            if emergency_result == "HOME":
+                return RETURN_HOME_REQUESTED
+            if emergency_result == "ABORT":
+                return False
             if stop_requested.is_set():
                 return False
             if peek_redirect_area() == "HOME":
@@ -1420,6 +1739,11 @@ def wait_for_go_qr():
 def qr_delivery_step():
     for attempt in range(1, QR_RETRIES + 1):
         if stop_requested.is_set():
+            return False
+        emergency_result = process_pending_emergency_command()
+        if emergency_result == "HOME":
+            return RETURN_HOME_REQUESTED
+        if emergency_result == "ABORT":
             return False
         if peek_redirect_area() == "HOME":
             return RETURN_HOME_REQUESTED
@@ -1496,7 +1820,6 @@ def handle_redirected_delivery(area, relative_points):
             area = take_redirect_area()
             continue
         if result == "FOUND":
-            perform_evacuation_alert(area)
             greet(dog)
             record("GREETING", area)
             report_control_center("GREETING", area)
@@ -1559,7 +1882,6 @@ def run_delivery(area, target_point, relative_points):
             report_control_center("RETURNED", "인물 미인식 후 출발점 복귀")
         return
 
-    perform_evacuation_alert(area)
     greet(dog)
     record("GREETING", area)
     report_control_center("GREETING", area)
@@ -1638,7 +1960,6 @@ def run_sequential_point_delivery(side_x, side_y, course_points):
                     report_control_center("RETURNED", f"{area} 인물 미인식 후 출발점 복귀")
             return
 
-        perform_evacuation_alert(area)
         greet(dog)
         record("GREETING", area)
         if qr_delivery_step() == RETURN_HOME_REQUESTED:
@@ -1678,8 +1999,9 @@ def run_job(mode, area, side_x, side_y, course_points):
             if connected:
                 try:
                     # Clear stale eye patterns before enabling the dashboard LED controls.
-                    clear_head_led()
-                    update_status(head_led_on=False)
+                    if not emergency_hold.is_set():
+                        clear_head_led()
+                        update_status(head_led_on=False, head_led_mode="꺼짐")
                 except Exception as exc:
                     print("눈 LED 초기화 오류:", exc)
         if not connected:
@@ -1708,7 +2030,7 @@ def run_job(mode, area, side_x, side_y, course_points):
             with job_lock:
                 try:
                     clear_head_led()
-                    update_status(head_led_on=False)
+                    update_status(head_led_on=False, head_led_mode="꺼짐")
                 except Exception as exc:
                     print("운행 종료 후 눈 LED 끄기 오류:", exc)
                 try:
@@ -1719,6 +2041,7 @@ def run_job(mode, area, side_x, side_y, course_points):
         update_status(
             connected=False, busy=False, hazard_wait=False,
             can_redirect=False, redirect_area=None,
+            emergency_waiting=False, emergency_command=None,
         )
         if stop_requested.is_set():
             update_status(state="정지 완료")
