@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102723">
+  <meta name="description" content="PawCare 로보독 배송 관제 프로젝트 소개와 실행 코드">
+  <title>PawCare | 로보독 배송 관제</title>
+  <style>
+    :root{--ink:#142923;--muted:#68756f;--paper:#f5f6f1;--white:#fff;--green:#245a47;--lime:#d8f17b;--line:#dce2d9;--orange:#e99a5a;--red:#c65349;--shadow:0 18px 55px #173a2a12}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Pretendard","Noto Sans KR",system-ui,-apple-system,sans-serif}a{color:inherit}button{font:inherit}.wrap{max-width:1180px;margin:auto;padding:0 28px}.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:-.04em}.brand-mark{width:37px;height:37px;border-radius:13px;background:var(--green);color:var(--lime);display:grid;place-items:center;font-size:20px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;font-weight:700;margin-top:1px}.nav{display:flex;gap:27px;font-size:13px;color:#53645b}.nav a{text-decoration:none}.nav a:hover{color:var(--green)}.top-cta{background:var(--green);color:#fff;text-decoration:none;border-radius:999px;padding:11px 16px;font-size:12px;font-weight:750}.hero{padding:76px 0 56px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:46px}.eyebrow{display:flex;gap:10px;align-items:center;color:var(--green);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.eyebrow i{width:7px;height:7px;background:var(--orange);border-radius:50%}h1{font-size:clamp(40px,5.4vw,68px);line-height:1.08;letter-spacing:-.065em;margin:19px 0 17px}h1 span{color:var(--green)}.lead{font-size:16px;line-height:1.85;color:#53645b;max-width:530px;margin:0}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}.chip{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:#ffffffa8;color:#46564e;font-size:11px;font-weight:700}.hero-actions{display:flex;align-items:center;gap:12px;margin-top:27px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 17px;border-radius:12px;border:1px solid var(--line);background:var(--white);text-decoration:none;font-size:13px;font-weight:800;cursor:pointer;transition:.18s}.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.primary b{color:var(--lime);font-size:17px}.tiny-note{color:var(--muted);font-size:11px;margin-top:14px;line-height:1.6}.preview{background:#e9eee7;border:1px solid #dbe3d7;border-radius:23px;padding:16px;box-shadow:var(--shadow);position:relative}.preview-head{display:flex;justify-content:space-between;align-items:center;padding:2px 5px 13px}.preview-title{font-size:12px;font-weight:850}.live-pill{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);padding:7px 10px;border-radius:999px;font-size:10px;font-weight:750;color:#5d6d64}.live-pill i{width:7px;height:7px;background:#8ba464;border-radius:50%}.map{height:270px;border-radius:15px;background:#fbfcf8;overflow:hidden;position:relative;border:1px solid #dce5d8}.map svg{width:100%;height:100%}.map-label{position:absolute;left:14px;top:13px;background:#fff;color:#53645b;border:1px solid #e2e8df;border-radius:8px;padding:7px 9px;font-size:10px;font-weight:750}.statusbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:12px}.statuscopy{font-size:11px;line-height:1.5;color:#607067}.statuscopy strong{display:block;color:var(--ink);font-size:12px}.status-number{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:10px;color:#65736a}.map-controls{display:flex;gap:8px;margin-top:12px}.map-controls .btn{flex:1;padding:10px;font-size:11px}.section{padding:69px 0;border-top:1px solid var(--line)}.section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:26px}.kicker{font-size:10px;letter-spacing:.16em;color:var(--green);font-weight:850}.section h2{font-size:clamp(27px,3.6vw,40px);letter-spacing:-.055em;line-height:1.2;margin:9px 0 0}.section-intro{max-width:440px;color:var(--muted);line-height:1.75;font-size:13px;margin:0}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.flow-card{background:var(--white);border:1px solid var(--line);border-radius:17px;padding:20px;min-height:166px}.flow-num{font:750 11px ui-monospace,monospace;color:#7b897f}.flow-icon{font-size:22px;margin:18px 0 12px}.flow-card h3{font-size:14px;margin:0 0 7px;letter-spacing:-.02em}.flow-card p{font-size:11px;line-height:1.65;color:var(--muted);margin:0}.architecture{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:stretch}.architecture-card{border-radius:18px;padding:24px;background:var(--green);color:#fff;min-height:215px;position:relative;overflow:hidden}.architecture-card.alt{background:#e9eee7;color:var(--ink)}.architecture-card .label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.68;font-weight:800}.architecture-card h3{font-size:23px;letter-spacing:-.05em;margin:12px 0 9px}.architecture-card p{font-size:12px;line-height:1.75;max-width:420px;opacity:.82}.architecture-card .big-icon{position:absolute;right:21px;bottom:16px;font-size:52px;opacity:.19}.path{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:17px}.path span{background:#ffffff20;border:1px solid #ffffff35;border-radius:8px;padding:7px 10px;font-size:10px;font-weight:800}.architecture-card.alt .path span{background:#fff;border-color:#dce2d9}.path i{font-style:normal;opacity:.55}.source-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.source-card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:22px}.source-card h3{margin:0 0 6px;font-size:16px;letter-spacing:-.03em}.source-card>p{margin:0 0 18px;font-size:12px;color:var(--muted);line-height:1.65}.file-list{display:grid;gap:8px}.file{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 13px;background:#f7f8f4;border:1px solid #e9ede6;border-radius:10px;text-decoration:none}.file:hover{border-color:#a8bcae}.file strong{display:block;font-size:11px}.file small{display:block;color:var(--muted);font-size:10px;margin-top:4px}.file em{font-size:10px;color:var(--green);font-style:normal;font-weight:800}.source-download{display:flex;flex-direction:column;justify-content:space-between;background:#eef2e9}.source-download .tag{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--green);font-weight:850}.source-download h3{font-size:23px;line-height:1.25;max-width:300px;margin:16px 0 10px}.source-download p{color:var(--muted);font-size:12px;line-height:1.7}.source-download .btn{align-self:flex-start}.disclaimer{margin-top:18px;border-left:3px solid var(--orange);background:#fff8f0;padding:14px 16px;border-radius:0 11px 11px 0;font-size:11px;line-height:1.7;color:#725b49}.disclaimer strong{color:#3c332b}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}.step b{font:800 11px ui-monospace,monospace;color:var(--green)}.step h3{font-size:13px;margin:12px 0 7px}.step p{font-size:11px;line-height:1.65;color:var(--muted);margin:0}.footer{padding:28px 0 38px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10px}.footer strong{color:var(--ink)}.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#142923;color:#fff;border-radius:999px;padding:12px 18px;font-size:12px;transition:.25s;z-index:3}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:850px){.hero{grid-template-columns:1fr;gap:30px;padding-top:53px}.preview{max-width:650px;width:100%;margin:auto}.section-head{align-items:start;flex-direction:column}.flow{grid-template-columns:repeat(2,1fr)}.source-grid{grid-template-columns:1fr}.nav{gap:13px}.architecture{grid-template-columns:1fr 1fr}}
+    @media(max-width:580px){.wrap{padding:0 17px}.topbar{height:64px}.nav{display:none}.hero{padding:42px 0}.hero-actions{align-items:stretch;flex-direction:column}.hero-actions .btn{width:100%}.preview{padding:10px}.map{height:225px}.architecture,.steps{grid-template-columns:1fr}.section{padding:49px 0}.flow-card{padding:16px;min-height:150px}.footer{flex-direction:column}.statusbar{grid-template-columns:1fr}.status-number{justify-self:start}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="PawCare 홈"><span class="brand-mark">🐾</span><span>PAWCARE<small>ROBOT DELIVERY CONTROL</small></span></a>
+      <nav class="nav" aria-label="페이지 메뉴"><a href="#process">작동 과정</a><a href="#structure">구성</a><a href="#source">코드</a></nav>
+      <a class="top-cta" href="#source">코드 받기 ↗</a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div>
+          <div class="eyebrow"><i></i> AI 동행 프로젝트 · 개인 제작 파트</div>
+          <h1>배송 경로를 정하고<br><span>운행 과정을 확인해요.</span></h1>
+          <p class="lead">Scratch에서 시작한 순차 배송 흐름을 Python 로보독 제어 코드와 HTML 관제 화면으로 확장했습니다. 지도에는 출발점과 배송지를 점으로 표시하고, A·B·C 순서로 이동하는 과정을 볼 수 있습니다.</p>
+          <div class="chips"><span class="chip">Scratch 배송 흐름</span><span class="chip">Python · RoboDog</span><span class="chip">HTML 관제 화면</span><span class="chip">재난 신호 코드 포함</span></div>
+          <div class="hero-actions"><a class="btn primary" href="pawcare_source.zip"><b>↓</b> 전체 코드 패키지</a><a class="btn" href="#process">작동 과정 보기 <span>↘</span></a></div>
+          <p class="tiny-note">이 사이트는 공개 소개와 코드 배포용입니다. 실제 로보독 제어는 아래 실행 안내에 따라 PC에서 Python 관제 프로그램을 실행해야 합니다.</p>
+        </div>
+
+        <div class="preview" aria-label="순차 배송 경로 미리보기">
+          <div class="preview-head"><span class="preview-title">순차 배송 경로 미리보기</span><span class="live-pill"><i></i><span id="modeLabel">모의 화면</span></span></div>
+          <div class="map">
+            <span class="map-label">점으로 경로 설정 · A → B → C</span>
+            <svg viewBox="0 0 560 270" role="img" aria-label="출발점에서 A, B, C 배송지를 차례로 방문하는 지도">
+              <defs><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#e7ece4" stroke-width="1"/></pattern><filter id="soft"><feGaussianBlur stdDeviation="4"/></filter></defs>
+              <rect width="560" height="270" fill="url(#grid)"/>
+              <path d="M48 215 C110 211 108 87 198 91 S278 214 335 187 S406 72 492 61" fill="none" stroke="#d9e1d7" stroke-width="16" stroke-linecap="round"/>
+              <path id="routeLine" d="M48 215 C110 211 108 87 198 91 S278 214 335 187 S406 72 492 61" fill="none" stroke="#245a47" stroke-width="3" stroke-dasharray="7 7" stroke-linecap="round"/>
+              <circle cx="48" cy="215" r="13" fill="#fff" stroke="#245a47" stroke-width="3"/><text x="48" y="219" text-anchor="middle" font-size="10" font-weight="800" fill="#245a47">S</text><text x="28" y="245" font-size="10" font-weight="700" fill="#59685f">출발</text>
+              <circle cx="198" cy="91" r="14" fill="#fff" stroke="#e99a5a" stroke-width="3"/><text x="198" y="95" text-anchor="middle" font-size="10" font-weight="800" fill="#8c512a">A</text>
+              <circle cx="335" cy="187" r="14" fill="#fff" stroke="#e99a5a" stroke-width="3"/><text x="335" y="191" text-anchor="middle" font-size="10" font-weight="800" fill="#8c512a">B</text>
+              <circle cx="492" cy="61" r="14" fill="#fff" stroke="#e99a5a" stroke-width="3"/><text x="492" y="65" text-anchor="middle" font-size="10" font-weight="800" fill="#8c512a">C</text>
+              <g id="robot" transform="translate(48 215)"><circle r="20" fill="#245a4730" filter="url(#soft)"/><circle r="13" fill="#245a47"/><text y="4" text-anchor="middle" font-size="11">🐕</text></g>
+            </svg>
+          </div>
+          <div class="statusbar"><div class="statuscopy"><strong id="simStatus">대기 중 · 출발점을 기준으로 배송지를 방문합니다</strong><span id="simDetail">미리보기는 화면 흐름을 보여주는 모의 동작입니다.</span></div><span class="status-number" id="stopCount">0 / 4 지점</span></div>
+          <div class="map-controls"><button class="btn primary" id="playBtn" type="button">▶ 배송 흐름 보기</button><button class="btn" id="resetBtn" type="button">↺ 처음으로</button></div>
+        </div>
+      </section>
+
+      <section class="section" id="process">
+        <div class="section-head"><div><div class="kicker">DELIVERY PROCESS</div><h2>배송은 이 순서로 진행됩니다.</h2></div><p class="section-intro">배송할 곳을 선택하고, 점 위치로 경로를 정합니다. 도착할 때마다 인물 카드와 QR을 확인한 뒤 다음 배송지로 이동합니다.</p></div>
+        <div class="flow">
+          <article class="flow-card"><div class="flow-num">01 / PLAN</div><div class="flow-icon">📍</div><h3>배송지와 점 설정</h3><p>관제 화면에서 A·B·C 배송지와 이동 순서를 정합니다. 지도의 점이 이동 목표가 됩니다.</p></article>
+          <article class="flow-card"><div class="flow-num">02 / MOVE</div><div class="flow-icon">🐕</div><h3>순서대로 이동</h3><p>Python 프로그램이 RoboDog 동작을 실행하고, 도착한 배송지와 진행 단계를 기록합니다.</p></article>
+          <article class="flow-card"><div class="flow-num">03 / CHECK</div><div class="flow-icon">🪪</div><h3>인물과 QR 확인</h3><p>배송지에서 인물 카드와 GO QR 처리 흐름을 진행합니다. 각 기능의 실기기 검증 여부는 실행 환경에서 확인해야 합니다.</p></article>
+          <article class="flow-card"><div class="flow-num">04 / RETURN</div><div class="flow-icon">🏠</div><h3>다음 지점 또는 귀환</h3><p>배송을 마치면 다음 점으로 이동하고, 모든 배송이 끝나면 출발점으로 돌아갑니다.</p></article>
+        </div>
+      </section>
+
+      <section class="section" id="structure">
+        <div class="section-head"><div><div class="kicker">PROJECT STRUCTURE</div><h2>화면, 제어, 로봇이 나뉘어 있어요.</h2></div><p class="section-intro">웹 화면은 사용자가 배송 흐름을 설정하고 상태를 확인합니다. PC에서 실행하는 Python 프로그램이 관제 화면과 로보독 사이를 연결합니다.</p></div>
+        <div class="architecture">
+          <article class="architecture-card"><div class="label">Control path · local PC</div><h3>HTML 관제 화면 → Python → RoboDog</h3><p>실제 주행은 PC의 Python 프로그램이 로보독과 연결되어 있을 때 동작합니다. 이 공개 사이트만으로 로봇을 원격 조종하지는 않습니다.</p><div class="path"><span>배송지 선택</span><i>→</i><span>관제 페이지</span><i>→</i><span>Python</span><i>→</i><span>RoboDog</span></div><div class="big-icon">⚙</div></article>
+          <article class="architecture-card alt"><div class="label">Radio path · micro:bit</div><h3>관측 micro:bit → 로보독 micro:bit</h3><p>다른 micro:bit에서 라디오로 받은 재난 신호를 로보독 탑재 micro:bit 쪽 코드에서 활용하도록 준비한 코드도 포함했습니다. PC에 직접 연결된 게이트웨이는 프로젝트 구성에 없습니다.</p><div class="path"><span>센서 위치 1·2</span><i>→</i><span>라디오 그룹 1</span><i>→</i><span>로보독 쪽 수신</span></div><div class="big-icon">⌁</div></article>
+        </div>
+      </section>
+
+      <section class="section" id="source">
+        <div class="section-head"><div><div class="kicker">SOURCE CODE</div><h2>코드와 실행 안내를 내려받으세요.</h2></div><p class="section-intro">사이트에는 소개 화면과 미리보기가 올라가 있습니다. Python 직렬 포트 제어와 micro:bit 코드는 아래 패키지에서 확인할 수 있습니다.</p></div>
+        <div class="source-grid">
+          <div class="source-card"><h3>개별 파일</h3><p>필요한 코드만 따로 열거나 저장할 수 있습니다.</p><div class="file-list">
+            <a class="file" href="robodog_abc_delivery.py" download><span><strong>RoboDog 배송·관제 Python</strong><small>실제 PC에서 실행하는 제어 프로그램</small></span><em>PY ↓</em></a>
+            <a class="file" href="pawcare_control.html" download><span><strong>HTML 관제 화면</strong><small>로컬 Python 서버에 연결하는 화면 파일</small></span><em>HTML ↓</em></a>
+            <a class="file" href="microbit_disaster_receiver_makecode.py" download><span><strong>micro:bit 재난 신호 수신</strong><small>라디오 그룹 1 수신 코드</small></span><em>PY ↓</em></a>
+            <a class="file" href="microbit_disaster_sender_makecode.py" download><span><strong>micro:bit 재난 신호 송신</strong><small>센서 위치 1·2에서 보내는 코드</small></span><em>PY ↓</em></a>
+            <a class="file" href="microbit_serial_integration_plan.md" download><span><strong>micro:bit 신호 연결 계획</strong><small>관측 micro:bit와 로보독 수신 흐름</small></span><em>MD ↓</em></a>
+            <a class="file" href="README_control_dashboard.txt" download><span><strong>관제 화면 실행 안내</strong><small>Python 서버와 HTML 연결 방법</small></span><em>TXT ↓</em></a>
+          </div></div>
+          <aside class="source-card source-download"><div><div class="tag">Complete source bundle</div><h3>전체 코드를 ZIP 하나로 받아요.</h3><p>로보독 Python, 관제 HTML, micro:bit 송·수신 코드, 실행 안내와 배송·기울기 운행 CSV 기록을 함께 담았습니다.</p></div><a class="btn primary" href="pawcare_source.zip"><b>↓</b> ZIP 다운로드</a></aside>
+        </div>
+        <div class="disclaimer"><strong>실제 로봇 사용:</strong> 이 공개 페이지는 정적 웹사이트라서 PC의 COM 포트에 직접 접근할 수 없습니다. 실기기 시연은 로보독을 연결한 PC에서 Python 제어 프로그램을 실행하고, 같은 PC에서 HTML 관제 화면을 열어 진행하세요. 센서·인물 인식·QR 기능은 코드 작성 여부와 실제 시험 결과를 구분해 확인해야 합니다.</div>
+      </section>
+
+      <section class="section" id="run">
+        <div class="section-head"><div><div class="kicker">RUN LOCALLY</div><h2>실기기 시연은 PC에서 이렇게 시작합니다.</h2></div><p class="section-intro">실행 환경에 따라 포트 번호와 라이브러리 설치 여부를 먼저 확인하세요. 자세한 명령은 패키지의 실행 안내 파일에 있습니다.</p></div>
+        <div class="steps"><article class="step"><b>STEP 01</b><h3>RoboDog 연결 확인</h3><p>USB 연결 포트와 필요한 Python 라이브러리를 확인합니다. 프로젝트 실행 설정의 로보독 포트는 COM8입니다.</p></article><article class="step"><b>STEP 02</b><h3>Python 제어 프로그램 실행</h3><p>Thonny에서 robodog_abc_delivery.py를 엽니다. 파일 실행 방식으로 시작해 관제 서버가 준비되는지 확인합니다.</p></article><article class="step"><b>STEP 03</b><h3>같은 PC에서 관제 화면 열기</h3><p>프로그램이 안내한 로컬 주소를 브라우저에서 열고, 실제 동작 전에는 로봇을 안전한 장소에 둡니다.</p></article></div>
+      </section>
+    </main>
+    <footer class="footer"><div><strong>PAWCARE</strong> · AI 동행 프로젝트 배송 관제 파트</div><div>공개 소개 페이지 · 실기기 제어는 로컬 Python 프로그램 필요</div></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const stops=[{x:48,y:215,name:'출발점',detail:'출발 위치에서 배송을 시작합니다.'},{x:198,y:91,name:'A 배송지',detail:'A 지점에서 인물 카드와 QR 확인 과정을 진행합니다.'},{x:335,y:187,name:'B 배송지',detail:'B 지점에 도착해 확인 과정을 진행합니다.'},{x:492,y:61,name:'C 배송지',detail:'C 지점까지 방문하면 순차 배송이 끝납니다.'}];let timer=null,index=0;
+    const robot=document.getElementById('robot'),status=document.getElementById('simStatus'),detail=document.getElementById('simDetail'),count=document.getElementById('stopCount'),play=document.getElementById('playBtn'),toast=document.getElementById('toast');
+    function showStop(i){const p=stops[i];robot.setAttribute('transform',`translate(${p.x} ${p.y})`);status.textContent=`${p.name} · ${i===stops.length-1?'배송 완료':'이동/확인 단계'}`;detail.textContent=p.detail;count.textContent=`${i+1} / ${stops.length} 지점`}
+    function stop(){if(timer){clearInterval(timer);timer=null}play.textContent='▶ 배송 흐름 보기'}
+    play.addEventListener('click',()=>{if(timer){stop();return}if(index>=stops.length-1)index=0;showStop(index);play.textContent='Ⅱ 일시 정지';timer=setInterval(()=>{index++;if(index>=stops.length){index=stops.length-1;showStop(index);stop();toast.textContent='모의 배송 흐름이 끝났습니다.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2100);return}showStop(index)},1250)});
+    document.getElementById('resetBtn').addEventListener('click',()=>{stop();index=0;robot.setAttribute('transform',`translate(${stops[0].x} ${stops[0].y})`);status.textContent='대기 중 · 출발점을 기준으로 배송지를 방문합니다';detail.textContent='미리보기는 화면 흐름을 보여주는 모의 동작입니다.';count.textContent='0 / 4 지점'});
+  </script>
+</body>
+</html>
+

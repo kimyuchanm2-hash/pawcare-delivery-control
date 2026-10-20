@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PawCare 관제센터</title>
+<style>
+:root{--bg:#f3f6f8;--panel:#fff;--ink:#18242c;--muted:#78868f;--line:#e5ebee;--teal:#16877f;--teal2:#e4f5f2;--orange:#ec9b43;--red:#d95757;--blue:#5584be;--shadow:0 12px 30px #1d37440c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{min-height:100vh;display:grid;grid-template-columns:230px 1fr}.sidebar{background:#172a31;color:#e9f4f4;padding:25px 16px;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:11px;padding:0 10px 28px;font-size:18px;font-weight:750}.brand-mark{width:34px;height:34px;border-radius:11px;background:#1c988d;display:grid;place-items:center;font-size:18px}.nav-label{color:#82969b;font-size:10px;letter-spacing:1.5px;padding:13px 12px 8px}.nav-item{padding:11px 12px;border-radius:10px;color:#c4d1d3;margin:2px 0;display:flex;gap:11px;align-items:center}.nav-item.active{background:#24434a;color:white}.nav-icon{width:18px;text-align:center;font-size:16px}.side-foot{margin-top:auto;border-top:1px solid #355057;padding:16px 11px;color:#93a9ad;font-size:12px}.main{padding:28px 34px;max-width:1500px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:23px}.eyebrow{font-size:11px;color:var(--teal);font-weight:700;letter-spacing:1.4px}.top h1{margin:4px 0 0;font-size:26px;letter-spacing:-.6px}.top-actions{display:flex;gap:10px;align-items:center}.clock{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:5px}.btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer;box-shadow:0 2px 4px #1a303808}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--teal);border-color:var(--teal);color:white}.btn.danger{background:#fff4f3;color:#be4545;border-color:#f3d0cc}.btn:disabled{opacity:.5;cursor:not-allowed}.status-banner{background:#e6f5f0;border:1px solid #cdebe1;border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:10px;margin-bottom:18px}.pulse{height:9px;width:9px;border-radius:50%;background:#22a882;box-shadow:0 0 0 4px #22a88220}.banner-text{font-weight:650}.banner-sub{color:#638078;font-size:12px;margin-left:auto}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}.metric{padding:16px 18px}.metric-head{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.metric-value{font-size:24px;font-weight:750;margin-top:8px;letter-spacing:-.5px}.metric-foot{font-size:11px;color:#94a0a6;margin-top:3px}.content{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(310px,.85fr);gap:16px}.panel-head{padding:17px 19px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.panel-title{font-size:15px;font-weight:730}.panel-note{color:var(--muted);font-size:11px;margin-top:3px}.map-wrap{padding:13px 16px 4px}.map{width:100%;height:auto;display:block;background:linear-gradient(0deg,transparent 24%,#edf2f4 25%,#edf2f4 26%,transparent 27%,transparent 74%,#edf2f4 75%,#edf2f4 76%,transparent 77%),linear-gradient(90deg,transparent 24%,#edf2f4 25%,#edf2f4 26%,transparent 27%,transparent 74%,#edf2f4 75%,#edf2f4 76%,transparent 77%);background-size:52px 52px;border-radius:9px}.route-line{fill:none;stroke:#a8c9c5;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 0}.route-line.active{stroke:var(--teal);stroke-dasharray:9 7;animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-32}}.point circle{fill:white;stroke:#b9c6cb;stroke-width:3}.point.done circle{fill:#16877f;stroke:#16877f}.point.current circle{fill:#fff;stroke:#ec9b43;stroke-width:5}.point text{font-size:12px;font-weight:700;fill:#52636a}.point.done text{fill:#16877f}.robot{transition:transform .7s ease}.robot circle{fill:#18363c}.robot text{font-size:17px}.map-legend{display:flex;gap:17px;padding:6px 19px 16px;color:var(--muted);font-size:11px}.legend-item{display:flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%;background:var(--teal)}.dot.grey{background:#aab8bd}.dot.orange{background:var(--orange)}.side-stack{display:flex;flex-direction:column;gap:14px}.section{padding:16px 18px}.section h3{font-size:13px;margin:0 0 13px}.destination{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid #f0f3f4}.destination:last-child{border:0}.badge{height:30px;width:30px;border-radius:9px;background:#edf3f5;color:#687980;display:grid;place-items:center;font-weight:750}.destination.active .badge{background:#fff0dc;color:#bd7722}.destination.done .badge{background:var(--teal2);color:var(--teal)}.dest-name{font-weight:650;font-size:12px}.dest-sub{color:var(--muted);font-size:10px}.dest-state{margin-left:auto;font-size:10px;color:var(--muted)}.destination.active .dest-state{color:#bd7722;font-weight:700}.tilt-head{display:flex;justify-content:space-between;align-items:center}.tilt-values{display:flex;gap:12px;font-size:11px;color:var(--muted)}.tilt-values strong{font-size:13px;color:var(--ink)}.chart{width:100%;height:80px;margin-top:10px}.events{max-height:250px;overflow:auto}.event{display:grid;grid-template-columns:48px 9px 1fr;gap:9px;padding:10px 0;border-bottom:1px solid #f0f3f4}.event:last-child{border:0}.event-time{font:10px ui-monospace,monospace;color:#98a4a9;padding-top:2px}.event-dot{height:8px;width:8px;border-radius:50%;background:#aebbc0;margin-top:4px}.event-dot.ok{background:#27a982}.event-dot.warn{background:var(--orange)}.event-dot.bad{background:var(--red)}.event-title{font-size:11px;font-weight:650}.event-detail{font-size:10px;color:var(--muted);margin-top:2px}.bottom{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin:0 0 16px}.controls{padding:15px 18px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}.control-label{font-size:12px;font-weight:700;margin-right:auto}.serial-hint{font-size:10px;color:var(--muted);width:100%;padding-top:2px}.serial-pill{font-size:10px;border-radius:99px;padding:4px 8px;background:#f1f4f5;color:#708087}.serial-pill.on{background:var(--teal2);color:var(--teal)}.notice{padding:14px 17px;color:#66777e;font-size:11px;line-height:1.65}.notice strong{color:#35464d}.toast{position:fixed;right:24px;bottom:24px;background:#18343b;color:white;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:1050px){.app{grid-template-columns:190px 1fr}.content{grid-template-columns:1fr}.side-stack{display:grid;grid-template-columns:1fr 1fr}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:720px){.app{display:block}.sidebar{display:none}.main{padding:20px 14px}.top{align-items:flex-start;gap:12px;flex-direction:column}.top-actions{width:100%;flex-wrap:wrap}.content,.bottom{grid-template-columns:1fr}.side-stack{grid-template-columns:1fr}.banner-sub{display:none}}
+</style>
+<style>
+.course-config{margin:16px 0;padding:17px 19px}.course-config-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}.course-fields{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:10px;color:var(--muted);font-weight:650}.field select,.field input{height:38px;border:1px solid var(--line);border-radius:8px;background:white;padding:0 10px;color:var(--ink);font:inherit}.field input{width:100px}.course-help{color:var(--muted);font-size:11px;margin-left:auto;align-self:center}@media(max-width:720px){.course-help{width:100%;margin-left:0}}
+.course-actions{display:flex;gap:7px;align-items:end;flex-wrap:wrap}.course-actions .btn{padding:9px 11px;font-size:11px}.course-editor-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(330px,.9fr);gap:16px;margin-top:16px}.editor-map-box{border:1px solid var(--line);border-radius:11px;background:#fbfcfc;padding:10px}.editor-map{width:100%;height:auto;display:block;touch-action:none}.editor-grid{stroke:#e4ebed;stroke-width:1}.editor-boundary{fill:#fff;stroke:#9eb0b5;stroke-width:2}.editor-axis{stroke:#a8b8bd;stroke-width:1.2}.editor-axis-label{font-size:10px;fill:#7d8a90}.editor-route{fill:none;stroke:#e87d59;stroke-width:3;stroke-dasharray:7 5;stroke-linecap:round;stroke-linejoin:round}.point-label{font-size:11px;font-weight:750;fill:#31434a;paint-order:stroke;stroke:white;stroke-width:3px;stroke-linejoin:round}.point.editable{cursor:grab;touch-action:none}.point.editable:active{cursor:grabbing}.point.editable circle{stroke-width:2.5}.point#homePoint circle,.point#editStart circle{fill:#ffc94c;stroke:#dda92e}.point#pointA circle,.point#editA circle{fill:#80c9a7;stroke:#3c9b76}.point#pointB circle,.point#editB circle{fill:#62c5df;stroke:#319ebd}.point#pointC circle,.point#editC circle{fill:#b997e8;stroke:#8d6cc3}.point text{text-anchor:middle}.editor-help{font-size:11px;color:var(--muted);padding:8px 2px 1px}.point-controls{display:flex;flex-direction:column;gap:8px}.point-row{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:grid;grid-template-columns:minmax(86px,1fr) auto auto;gap:8px;align-items:center}.point-row-label{font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}.point-chip{width:10px;height:10px;border-radius:50%;background:#ffc94c}.point-row[data-key="A"] .point-chip{background:#80c9a7}.point-row[data-key="B"] .point-chip{background:#62c5df}.point-row[data-key="C"] .point-chip{background:#b997e8}.coordinate-field{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:10px}.coordinate-field input{width:66px;height:32px;padding:0 7px}.coordinate-summary{margin-top:3px;padding:11px 12px;background:#f3f7f8;border-radius:9px;color:#586970;font-size:11px;line-height:1.6}.coordinate-summary strong{color:#263a40}.point-controls .btn{margin-top:auto}.map{background:none}.point{transition:transform .18s ease}
+@media(max-width:900px){.course-editor-layout{grid-template-columns:1fr}.point-controls{display:grid;grid-template-columns:1fr 1fr}.coordinate-summary,.point-controls .btn{grid-column:1/-1}}@media(max-width:520px){.point-controls{grid-template-columns:1fr}.point-row{grid-template-columns:1fr auto auto}.course-actions{width:100%}.course-actions .field{flex:1}}
+</style>
+<style>
+.grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.map-telemetry{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:10px;color:var(--muted)}
+.telemetry-pill,.route-mode-pill{border:1px solid var(--line);border-radius:999px;background:#f7f9fa;padding:5px 9px;white-space:nowrap}
+.route-mode-pill{color:var(--teal);font-weight:700;background:var(--teal2);border-color:#cae9e3}
+.trail-line{fill:none;stroke:#ec9b43;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:3 7;opacity:.9}
+.robot-direction{fill:none;stroke:#18363c;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.map-legend .dot.route{background:#a8c9c5}.map-legend .dot.trail{background:#ec9b43}
+.metric-value.coordinate{font-size:20px;letter-spacing:-.4px}
+.destination .dest-progress{font-size:10px;color:var(--muted);margin-top:2px}
+.destination.warn .dest-state,.destination.warn .dest-progress{color:var(--red)}
+.destination.done .dest-state{color:var(--teal);font-weight:700}
+.robot-direction{stroke:#ec9b43;stroke-width:4;fill:none}
+.map-heading-note{font-size:10px;color:var(--muted);margin-top:3px}
+.course-config.busy .editable{pointer-events:none;opacity:.55}
+.region-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;width:100%}
+.region-direct{min-height:66px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);padding:9px 11px;display:grid;grid-template-columns:35px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;cursor:pointer;transition:.15s ease}
+.region-direct:hover{transform:translateY(-2px);box-shadow:0 5px 14px #1d374410}
+.region-direct:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.region-direct .region-code{grid-row:1/3;font-size:22px;font-weight:800;line-height:1}
+.region-direct .region-name{font-size:12px;font-weight:750}
+.region-direct small{font-size:10px;color:var(--muted)}
+.region-direct[data-direct-area="A"] .region-code{color:#3c9b76}
+.region-direct[data-direct-area="B"] .region-code{color:#319ebd}
+.region-direct[data-direct-area="C"] .region-code{color:#8d6cc3}
+.region-direct.selected{border-color:var(--teal);box-shadow:0 0 0 2px #16877f20;background:#f2fbf8}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.map-telemetry{justify-content:flex-start}.panel-head{gap:8px;align-items:flex-start}}
+</style>
+<style>
+.emergency-panel{margin:0 0 16px;padding:14px 17px;border:1px solid #ead9c2;background:#fffdf9;transition:.2s ease}
+.emergency-panel.active{border-color:#e9a184;background:#fff6f2;box-shadow:0 0 0 3px #d9575710}
+.emergency-panel-head{display:flex;align-items:center;gap:12px}
+.emergency-symbol{width:36px;height:36px;flex:0 0 36px;border-radius:11px;background:#f3f5f5;color:#78868f;display:grid;place-items:center;font-size:20px;font-weight:850}
+.emergency-panel.active .emergency-symbol{background:#ffe1d7;color:#bd4339}
+.emergency-main{min-width:0;flex:1}
+.emergency-pill{border-radius:99px;padding:5px 10px;background:#f0f3f4;color:#75838a;font-size:11px;font-weight:750;white-space:nowrap}
+.emergency-panel.active .emergency-pill{background:#ffe3dc;color:#ad392f}
+.emergency-location{font-size:12px;color:#516168;margin:10px 0 0 48px}
+.emergency-zone-settings{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:10px 0 0 48px;padding:9px 11px;border:1px solid #edf0f1;border-radius:9px;background:#fff;font-size:11px;color:#68777e}
+.emergency-zone-settings strong{color:#33444b}
+.emergency-zone-settings label{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.emergency-zone-settings input{width:55px;padding:4px 5px;border:1px solid #dce4e6;border-radius:6px;color:#27383f;background:#fbfcfc}
+.emergency-zone{pointer-events:none;filter:drop-shadow(0 2px 2px #1c343322)}
+.emergency-zone circle{fill:#fff;stroke:#d95757;stroke-width:3}
+.emergency-zone text{fill:#b83e3e;font-size:12px;font-weight:900;text-anchor:middle;dominant-baseline:central}
+.map-legend .dot.zone{background:#fff;border:2px solid #d95757}
+.emergency-history{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0 48px}
+.emergency-history:empty{display:none}
+.emergency-history-item{border:1px solid #e9edef;border-radius:8px;padding:5px 8px;background:#fff;color:#69777e;font-size:10px}
+.emergency-active-list{display:grid;gap:7px;margin:10px 0 0 48px}
+.emergency-active-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #f0d1c7;border-radius:9px;padding:8px 10px;background:#fff8f5}
+.emergency-active-copy{flex:1;min-width:170px;font-size:11px;color:#5d5551}
+.emergency-active-copy strong{color:#a73c32}
+.emergency-active-row .btn{padding:5px 9px;font-size:10px}
+.destination.emergency-target{background:#fff7f3;outline:1px solid #f0c0b3;border-radius:9px;padding-left:8px;padding-right:8px}
+.destination.emergency-target .dest-name:after{content:' · 대피 대상';color:#b94035;font-size:10px}
+.emergency-zone.active circle{fill:#ffe0d8;stroke:#d95757;stroke-width:4}
+.emergency-zone.active text{fill:#a32f2f}
+.emergency-map-marker{pointer-events:none;filter:drop-shadow(0 2px 3px #9b332955)}
+.emergency-map-marker circle{fill:#d95757;stroke:#fff;stroke-width:3}
+.emergency-map-marker .emergency-exclamation{fill:#fff;font-size:19px;font-weight:900;text-anchor:middle}
+.emergency-map-marker .emergency-map-label{fill:#a32f2f;font-size:11px;font-weight:800;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.map-legend .dot.emergency{background:#d95757}
+.status-banner.emergency-active{background:#fff1ed;border-color:#f3c9bd}
+.status-banner.emergency-active .pulse{background:#d95757;box-shadow:0 0 0 4px #d9575720}
+@media(max-width:520px){.emergency-panel-head{align-items:flex-start;flex-wrap:wrap}.emergency-location,.emergency-history,.emergency-zone-settings,.emergency-active-list{margin-left:0}}
+</style>
+<style>
+.observation-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 16px 8px}
+.observation-station{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fbfcfc}
+.observation-station.fire{border-color:#e8a092;background:#fff5f2}
+.observation-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px}
+.observation-head span{color:var(--muted);margin-right:auto}
+.observation-head b{font-size:10px;color:var(--teal)}
+.observation-station.fire .observation-head b,.observation-station.fire #observationFlame1,.observation-station.fire #observationFlame2{color:var(--red)}
+.observation-values{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px;color:var(--muted);font-size:10px}
+.observation-values strong{display:block;margin-top:3px;color:var(--ink);font-size:14px}
+.observation-note{padding:0 16px 14px;color:var(--muted);font-size:10px}
+@media(max-width:520px){.observation-grid{grid-template-columns:1fr}}
+</style>
+<style>
+.manual-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin:0 0 16px}
+.manual-controls>div:first-child{margin-right:auto}
+.manual-controls strong{font-size:12px}
+.manual-controls-note{color:var(--muted);font-size:10px;margin-top:2px}
+.nav-item{width:100%;border:0;background:transparent;font:inherit;text-align:left;cursor:pointer}
+.nav-item:hover{background:#203b42;color:#fff}
+.nav-item:focus-visible{outline:2px solid #75cfc4;outline-offset:2px}
+.sidebar{position:sticky;top:0;height:100vh;align-self:start;overflow:auto}
+[hidden]{display:none!important}
+.run-history-card{overflow:hidden}
+.run-history-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;color:var(--muted);font-size:11px}
+.run-history-toolbar .btn{margin-left:auto}
+.run-history-table-wrap{overflow-x:auto;padding:0 18px 18px}
+.run-history-table{width:100%;border-collapse:collapse;min-width:720px;text-align:left}
+.run-history-table th,.run-history-table td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:12px}
+.run-history-table th{color:var(--muted);font-size:10px;font-weight:700;white-space:nowrap}
+.run-history-table td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.run-history-id{display:block;color:#9aa6aa;font:10px ui-monospace,monospace;margin-top:3px}
+.run-outcome{display:inline-block;border-radius:999px;padding:4px 8px;background:#f1f4f5;color:#65747a;font-size:10px;font-weight:700;white-space:nowrap}
+.run-outcome.good{background:var(--teal2);color:var(--teal)}.run-outcome.bad{background:#fff0ed;color:#b7473e}.run-outcome.active{background:#fff4df;color:#a66b1f}
+.run-details summary{color:var(--teal);cursor:pointer;font-size:11px;white-space:nowrap}
+.run-event-list{margin:8px 0 0;padding-left:18px;min-width:200px;color:#617078;font-size:10px;line-height:1.7}
+.run-event-list time{color:#9aa6aa;margin-right:5px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">🐾</div><span>PawCare</span></div>
+    <div class="nav-label">운영</div>
+    <button class="nav-item active" type="button" data-nav-target="dashboard"><span class="nav-icon">▦</span>관제 대시보드</button>
+    <button class="nav-item" type="button" data-nav-target="history"><span class="nav-icon">◷</span>운행 기록</button>
+    <div class="nav-label">장치</div>
+    <button class="nav-item" type="button" data-nav-target="connection"><span class="nav-icon">⌁</span>Python 연결</button>
+    <div class="side-foot">ROBO DOG · 배송 관제<br><span style="opacity:.65">프로토타입 화면</span></div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <div><div class="eyebrow">PAWCARE DELIVERY</div><h1 id="pageTitle">관제 대시보드</h1></div>
+      <div class="top-actions"><span class="clock" id="clock">--:--:--</span><span id="serialPill" class="serial-pill">파이썬 연결 확인 중</span></div>
+    </header>
+    <div id="dashboardPage">
+    <div class="status-banner"><span class="pulse" id="pulse"></span><span class="banner-text" id="bannerText">대기 중</span><span class="banner-sub" id="bannerSub">Python 관제 서버를 통해 로보독 상태를 표시합니다.</span></div>
+    <section class="card emergency-panel" id="emergencyPanel" aria-live="assertive" aria-atomic="true">
+      <div class="emergency-panel-head">
+        <div class="emergency-symbol" id="emergencySymbol">!</div>
+        <div class="emergency-main"><div class="panel-title" id="emergencyTitle">재난 신호 대기</div><div class="panel-note" id="emergencyMessage">라디오 E/F/G/H 및 관측소 OBS · 1번은 A/B, 2번은 B/C 대피 대상</div></div>
+        <span class="emergency-pill" id="emergencyPill">대기</span>
+        <button class="btn danger" id="emergencyAckBtn" disabled>최근 신호 확인</button>
+      </div>
+      <div class="emergency-location" id="emergencyLocation">위치 1은 A·B, 위치 2는 B·C 배송지에 적용됩니다. 좌표는 아래에서 직접 정합니다.</div>
+      <div class="emergency-zone-settings"><strong>재난 위치 좌표 (cm)</strong><label>1번 X <input id="emergencyX1" type="number" min="0" max="300" value="12"> Y <input id="emergencyY1" type="number" min="0" max="300" value="12"></label><label>2번 X <input id="emergencyX2" type="number" min="0" max="300" value="38"> Y <input id="emergencyY2" type="number" min="0" max="300" value="38"></label></div>
+      <div class="emergency-active-list" id="emergencyActiveList"></div>
+      <div class="emergency-history" id="emergencyHistory"></div>
+    </section>
+    <section class="card manual-controls" aria-label="로보독 수동 제어">
+      <div><strong>로보독 수동 제어</strong><div class="manual-controls-note">눈 LED는 로보독 연결 후 운행 중에도 켜고 끌 수 있습니다. 귀환은 운행 중 요청할 수 있고, 위험 정지 중에는 사용할 수 없습니다.</div></div>
+      <span class="serial-pill" id="headLedState">꺼짐</span>
+      <button class="btn primary" id="headLedOnBtn" type="button">눈 LED 켜기</button>
+      <button class="btn" id="headLedOffBtn" type="button">눈 LED 끄기</button>
+      <button class="btn danger" id="returnHomeBtn" type="button" disabled>⌂ 출발점으로 귀환</button>
+    </section>
+    <section class="bottom">
+      <div class="card controls"><span class="control-label">로보독 운행 제어</span><button class="btn primary" id="startSeqBtn">▶ A→B→C 순차 배송</button><div class="region-quick-actions" aria-label="배송 지역 바로 선택"><button class="region-direct" type="button" data-direct-area="A" aria-label="A 지역 배송 바로 시작"><strong class="region-code">A</strong><span class="region-name">A 지역 바로 배송</span><small>CLASS2 인물 카드</small></button><button class="region-direct" type="button" data-direct-area="B" aria-label="B 지역 배송 바로 시작"><strong class="region-code">B</strong><span class="region-name">B 지역 바로 배송</span><small>CLASS3 인물 카드</small></button><button class="region-direct" type="button" data-direct-area="C" aria-label="C 지역 배송 바로 시작"><strong class="region-code">C</strong><span class="region-name">C 지역 바로 배송</span><small>CLASS4 인물 카드</small></button></div><button class="btn danger" id="stopBtn">■ 정지</button><button class="btn" id="resumeBtn" disabled>CLASS1 제거 확인 후 재개</button><div class="serial-hint" id="regionHint">A/B/C 버튼은 해당 지역으로 바로 배송하고 출발점으로 복귀합니다. 이동 중 누르면 목적지를 바꿉니다.</div><div class="serial-hint" id="microbitHint">구간 micro:bit → RoboDog micro:bit 수신·저장 · HTML 실시간 연결 미확인</div></div>
+      <div class="card notice" id="connectionPanel"><strong>연결 상태</strong><br>먼저 <code>robodog_abc_delivery.py</code>를 실행하세요. Python은 RoboDog를 제어하고 관제 페이지를 제공합니다. 상대 코드 기준 관측소 micro:bit는 PC의 <code>COM6</code>(115200)에 연결하고, RoboDog는 PC의 <code>COM8</code> 포트를 사용합니다. 주소는 <code>http://127.0.0.1:8765</code>입니다.<br><br><strong>프로그램 실행</strong><br>상대 코드도 RoboDog를 직접 움직이므로 두 Python 프로그램을 동시에 실행하면 안 됩니다. 이 통합 프로그램 하나만 실행하세요. 상대 코드가 보내는 <code>OBS,관측소,불꽃,가스AO,가스DO</code> 신호는 관제 화면에 표시합니다. 가스 위험 기준은 아직 정해지지 않아 AO/DO 값만 보여주고 위험 판정에는 사용하지 않습니다.</div>
+    </section>
+    <section class="grid">
+      <div class="card metric"><div class="metric-head"><span>로보독 상태</span><span>●</span></div><div class="metric-value" id="robotState">대기</div><div class="metric-foot">현재 배송 작업 상태</div></div>
+      <div class="card metric"><div class="metric-head"><span>현재 배송지</span><span>⌖</span></div><div class="metric-value" id="currentArea">출발점</div><div class="metric-foot">도착 순서 A → B → C</div></div>
+      <div class="card metric"><div class="metric-head"><span>AI 클래스</span><span>◉</span></div><div class="metric-value" id="aiClass">대기</div><div class="metric-foot">CLASS1 위험 · CLASS2/3/4 A/B/C</div></div>
+      <div class="card metric"><div class="metric-head"><span>기울기</span><span>↗</span></div><div class="metric-value"><span id="rollValue">0.0</span>° <small style="font-size:13px;color:#89979d">/</small> <span id="pitchValue">0.0</span>°</div><div class="metric-foot">ROLL / PITCH</div></div>
+      <div class="card metric"><div class="metric-head"><span>현재 좌표</span><span>⌖</span></div><div class="metric-value coordinate" id="positionValue">(4.0, 4.0)</div><div class="metric-foot">cm · 이동량 기반 추정</div></div>
+    </section>
+    <section class="content">
+      <article class="card">
+        <div class="panel-head"><div><div class="panel-title">2D 배송 지도</div><div class="panel-note">원점은 왼쪽 위 · +Y는 아래쪽 · 방향 0°는 오른쪽, 양수는 시계 방향</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="route-mode-pill" id="routeModePill">순차 경로 · 출발→A→B→C→출발</span><span class="telemetry-pill" id="mapPosition">추정 위치 (4.0, 4.0)cm · 방향 0°</span><button class="btn" id="resetBtn">점 설정 초기화</button></div></div>
+        <div class="map-wrap">
+          <svg class="map" id="mainMap" viewBox="0 0 600 390" role="img" aria-label="배송 경로와 로보독 위치 지도">
+            <g id="mainGrid"></g><path id="route" class="route-line"/><polyline id="trail" class="trail-line" points=""/>
+            <g class="point" id="homePoint"><circle r="12"/><text class="point-label">출발점</text></g>
+            <g class="point" id="pointA"><circle r="12"/><text class="point-label">A</text></g>
+            <g class="point" id="pointB"><circle r="12"/><text class="point-label">B</text></g>
+            <g class="point" id="pointC"><circle r="12"/><text class="point-label">C</text></g>
+            <g class="robot" id="robotMarker"><circle r="16"/><text text-anchor="middle" dominant-baseline="central">🐕</text><path id="robotDirection" class="robot-direction" d="M8 0L28 0M21 -6L28 0L21 6"/></g>
+            <g class="emergency-zone" id="emergencyZone1"><circle r="13"/><text x="0" y="1">1</text></g>
+            <g class="emergency-zone" id="emergencyZone2"><circle r="13"/><text x="0" y="1">2</text></g>
+            <g class="emergency-map-marker" id="emergencyMarker" style="display:none"><circle r="18"/><text class="emergency-exclamation" x="0" y="7">!</text><text class="emergency-map-label" id="emergencyMarkerLabel" x="0" y="-27">재난</text></g>
+            <text id="mapSizeLabel" x="300" y="375" text-anchor="middle" fill="#718087" font-size="11">50 × 50 cm</text>
+          </svg>
+        </div>
+        <div class="map-legend"><span class="legend-item"><i class="dot route"></i>설정 경로</span><span class="legend-item"><i class="dot trail"></i>추정 이동 궤적</span><span class="legend-item"><i class="dot orange"></i>현재 추정 위치</span><span class="legend-item"><i class="dot grey"></i>배송지 대기</span><span class="legend-item"><i class="dot zone"></i>재난 위치 1·2</span><span class="legend-item"><i class="dot emergency"></i>수신 재난</span></div>
+      </article>
+      <div class="side-stack">
+        <article class="card"><div class="panel-head"><div><div class="panel-title">배송 순서</div><div class="panel-note">각 지점에서 해당 인물 카드와 GO QR 확인</div></div></div>
+          <div class="section">
+            <div class="destination" id="destA"><div class="badge">A</div><div><div class="dest-name">A 배송지</div><div class="dest-sub">인물 카드 CLASS2</div><div class="dest-progress">인물 확인 · GO QR 대기</div></div><div class="dest-state">대기</div></div>
+            <div class="destination" id="destB"><div class="badge">B</div><div><div class="dest-name">B 배송지</div><div class="dest-sub">인물 카드 CLASS3</div><div class="dest-progress">인물 확인 · GO QR 대기</div></div><div class="dest-state">대기</div></div>
+            <div class="destination" id="destC"><div class="badge">C</div><div><div class="dest-name">C 배송지</div><div class="dest-sub">인물 카드 CLASS4</div><div class="dest-progress">인물 확인 · GO QR 대기</div></div><div class="dest-state">대기</div></div>
+          </div>
+        </article>
+        <article class="card"><div class="section">
+          <div class="tilt-head"><h3>기울기 추이</h3><div class="tilt-values">R <strong id="rollMini">0.0°</strong> P <strong id="pitchMini">0.0°</strong></div></div>
+          <canvas id="tiltChart" class="chart" width="400" height="100"></canvas>
+        </div></article>
+        <article class="card"><div class="panel-head"><div><div class="panel-title">micro:bit 소리·빛 센서</div><div class="panel-note">현재는 micro:bit 내부 DataLogger에 저장 · HTML 실시간 연결 미확인</div></div><span class="telemetry-pill" id="microbitSensorStatus">기기 내부 기록</span></div>
+          <div class="section" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="metric"><div class="metric-head">소리 크기</div><div class="metric-value"><span id="microbitSound">—</span></div><div class="metric-foot">micro:bit sound level</div></div>
+            <div class="metric"><div class="metric-head">밝기</div><div class="metric-value"><span id="microbitLight">—</span></div><div class="metric-foot">micro:bit light level</div></div>
+            <div class="metric"><div class="metric-head">코스 구간</div><div class="metric-value"><span id="microbitSegment">—</span></div><div class="metric-foot" id="microbitPhase">단계 대기</div></div>
+            <div class="metric"><div class="metric-head">측정 경과 시간</div><div class="metric-value"><span id="microbitElapsed">—</span></div><div class="metric-foot">초 · micro:bit에서 기록</div></div>
+          </div>
+        </article>
+        <article class="card observation-panel"><div class="panel-head"><div><div class="panel-title">관측소 화재·가스 센서</div><div class="panel-note">USB 시리얼 OBS 데이터 · 1번 A/B, 2번 B/C</div></div><span class="telemetry-pill" id="observationStatus">신호 대기</span></div>
+          <div class="observation-grid">
+            <div class="observation-station" id="observationStation1"><div class="observation-head"><strong>관측소 1</strong><span>A · B 구간</span><b id="observationFresh1">수신 대기</b></div><div class="observation-values"><div>불꽃 <strong id="observationFlame1">—</strong></div><div>가스 AO <strong id="observationGasAO1">—</strong></div><div>가스 DO <strong id="observationGasDO1">—</strong></div></div></div>
+            <div class="observation-station" id="observationStation2"><div class="observation-head"><strong>관측소 2</strong><span>B · C 구간</span><b id="observationFresh2">수신 대기</b></div><div class="observation-values"><div>불꽃 <strong id="observationFlame2">—</strong></div><div>가스 AO <strong id="observationGasAO2">—</strong></div><div>가스 DO <strong id="observationGasDO2">—</strong></div></div></div>
+          </div><div class="observation-note">가스 값은 원시 측정값입니다. 센서 종류와 감지 기준을 설정하기 전에는 안전/위험으로 판정하지 않습니다.</div>
+        </article>
+        <article class="card"><div class="panel-head"><div><div class="panel-title">관제 이벤트</div><div class="panel-note">최근 상태 및 보고</div></div><button class="btn" id="clearEvents" style="padding:6px 9px;font-size:10px">지우기</button></div><div class="section events" id="events"></div></article>
+      </div>
+    </section>
+    <section class="card course-config" id="courseConfig">
+      <div class="course-config-head"><div><div class="panel-title">배송 코스 설정</div><div class="panel-note">점을 지도에서 끌거나 좌표를 입력해 주세요. 배송 순서는 출발점 → A → B → C → 출발점입니다.</div></div><span class="serial-pill">점 위치 지정</span></div>
+      <div class="course-fields">
+        <div class="field"><label for="courseWidth">지도 가로 (cm)</label><input id="courseWidth" type="number" min="10" max="300" step="5" value="50"></div>
+        <div class="field"><label for="courseHeight">지도 세로 (cm)</label><input id="courseHeight" type="number" min="10" max="300" step="5" value="50"></div>
+        <div class="course-actions">
+          <button class="btn" type="button" data-size="50,50">50 × 50</button>
+          <button class="btn" type="button" data-size="100,50">100 × 50</button>
+          <button class="btn" type="button" data-size="50,100">50 × 100</button>
+          <button class="btn" type="button" id="examplePointsBtn">예시 점 불러오기</button>
+        </div>
+        <div class="course-help" id="courseSummary">지도 안의 점을 옮겨 위치를 정하세요.</div>
+      </div>
+      <div class="course-editor-layout">
+        <div>
+          <div class="editor-map-box">
+            <svg class="editor-map" id="courseEditorMap" viewBox="0 0 600 390" role="img" aria-label="드래그해서 배송 지점을 설정하는 지도">
+              <g id="editorGrid"></g><path id="editorRoute" class="editor-route"/>
+              <g class="point editable" id="editStart" data-key="start" tabindex="0" role="slider" aria-label="출발점"><circle r="11"/><text class="point-label">출발점</text></g>
+              <g class="point editable" id="editA" data-key="A" tabindex="0" role="slider" aria-label="A 배송지"><circle r="11"/><text class="point-label">A</text></g>
+              <g class="point editable" id="editB" data-key="B" tabindex="0" role="slider" aria-label="B 배송지"><circle r="11"/><text class="point-label">B</text></g>
+              <g class="point editable" id="editC" data-key="C" tabindex="0" role="slider" aria-label="C 배송지"><circle r="11"/><text class="point-label">C</text></g>
+            </svg>
+          </div>
+          <div class="editor-help">점을 끌거나 방향키로 옮기세요. Y+는 화면 아래쪽이며, 좌표의 (0, 0)은 지도 왼쪽 위입니다. 방향키를 누르면 지도 점도 같은 방향으로 움직여요.</div>
+        </div>
+        <div class="point-controls">
+          <div class="point-row" data-key="start"><div class="point-row-label"><i class="point-chip"></i>출발점</div><label class="coordinate-field">X <input type="number" min="0" step="1" data-coordinate="x" aria-label="출발점 X 좌표">cm</label><label class="coordinate-field">Y <input type="number" min="0" step="1" data-coordinate="y" aria-label="출발점 Y 좌표">cm</label></div>
+          <div class="point-row" data-key="A"><div class="point-row-label"><i class="point-chip"></i>A 배송지</div><label class="coordinate-field">X <input type="number" min="0" step="1" data-coordinate="x" aria-label="A X 좌표">cm</label><label class="coordinate-field">Y <input type="number" min="0" step="1" data-coordinate="y" aria-label="A Y 좌표">cm</label></div>
+          <div class="point-row" data-key="B"><div class="point-row-label"><i class="point-chip"></i>B 배송지</div><label class="coordinate-field">X <input type="number" min="0" step="1" data-coordinate="x" aria-label="B X 좌표">cm</label><label class="coordinate-field">Y <input type="number" min="0" step="1" data-coordinate="y" aria-label="B Y 좌표">cm</label></div>
+          <div class="point-row" data-key="C"><div class="point-row-label"><i class="point-chip"></i>C 배송지</div><label class="coordinate-field">X <input type="number" min="0" step="1" data-coordinate="x" aria-label="C X 좌표">cm</label><label class="coordinate-field">Y <input type="number" min="0" step="1" data-coordinate="y" aria-label="C Y 좌표">cm</label></div>
+          <div class="coordinate-summary" id="pointSummary"></div>
+        </div>
+      </div>
+    </section>
+    </div>
+    <section id="runHistoryPage" hidden>
+      <article class="card run-history-card">
+        <div class="panel-head"><div><div class="panel-title">운행 기록</div><div class="panel-note">운행을 시작할 때마다 CSV에 누적 저장합니다. 최근 30회가 여기에 표시됩니다.</div></div></div>
+        <div class="run-history-toolbar"><span id="runHistoryStatus">기록을 불러오는 중…</span><a class="btn" href="/api/runs.csv">CSV 내려받기</a></div>
+        <div class="run-history-table-wrap"><table class="run-history-table"><thead><tr><th>시작 시간</th><th>배송 방식</th><th>도착 기록</th><th>결과</th><th>상세</th></tr></thead><tbody id="runHistoryRows"></tbody></table></div>
+      </article>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $ = id => document.getElementById(id);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const KEYS = ['start', 'A', 'B', 'C'];
+const LABELS = {start:'출발점', A:'A', B:'B', C:'C'};
+const ELEMENTS = {start:['homePoint','editStart'], A:['pointA','editA'], B:['pointB','editB'], C:['pointC','editC']};
+const DEFAULT_POINTS = {start:{x:4,y:4}, A:{x:46,y:4}, B:{x:46,y:46}, C:{x:4,y:46}};
+let points = loadPoints();
+const DEFAULT_EMERGENCY_LOCATIONS = {1:{x:12,y:12},2:{x:38,y:38}};
+let emergencyLocations = loadEmergencyLocations();
+let lastEventId = 0;
+let routePreviewMode = 'sequential';
+let selectedArea = 'A';
+let lastStatus = null;
+let startPending = false;
+const plot = {left:80, right:520, top:35, bottom:345};
+function now(){return new Date().toLocaleTimeString('ko-KR',{hour12:false})}
+function toast(text){const el=$('toast');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2600)}
+function addEvent(title,detail='',kind='ok',time=now()){
+  const row=document.createElement('div');row.className='event';
+  const t=document.createElement('div');t.className='event-time';t.textContent=time;
+  const dot=document.createElement('i');dot.className='event-dot '+kind;
+  const body=document.createElement('div');const head=document.createElement('div');head.className='event-title';head.textContent=title;
+  const sub=document.createElement('div');sub.className='event-detail';sub.textContent=detail;body.append(head,sub);row.append(t,dot,body);$('events').prepend(row);
+}
+function setBanner(title,sub){$('bannerText').textContent=title;$('bannerSub').textContent=sub}
+function getCourseDims(){return {w:Number($('courseWidth').value)||50,h:Number($('courseHeight').value)||50}}
+function loadPoints(){
+  try{const saved=JSON.parse(localStorage.getItem('pawcare-course-points')||'null');if(saved){const savedPoints=saved.points||saved;if(KEYS.every(k=>savedPoints[k]&&Number.isFinite(Number(savedPoints[k].x))&&Number.isFinite(Number(savedPoints[k].y)))){if(saved.width>=10&&saved.width<=300)$('courseWidth').value=saved.width;if(saved.height>=10&&saved.height<=300)$('courseHeight').value=saved.height;return Object.fromEntries(KEYS.map(k=>[k,{x:Number(savedPoints[k].x),y:Number(savedPoints[k].y)}]))}}}catch{}
+  return Object.fromEntries(KEYS.map(k=>[k,{...DEFAULT_POINTS[k]}]));
+}
+function savePoints(){try{const {w,h}=getCourseDims();localStorage.setItem('pawcare-course-points',JSON.stringify({points,width:w,height:h}))}catch{}}
+function loadEmergencyLocations(){
+  try{const saved=JSON.parse(localStorage.getItem('pawcare-emergency-locations')||'null');if(saved&&['1','2'].every(k=>saved[k]&&Number.isFinite(Number(saved[k].x))&&Number.isFinite(Number(saved[k].y))))return Object.fromEntries(['1','2'].map(k=>[k,{x:clamp(Number(saved[k].x),0,300),y:clamp(Number(saved[k].y),0,300)}]))}catch{}
+  return {1:{...DEFAULT_EMERGENCY_LOCATIONS[1]},2:{...DEFAULT_EMERGENCY_LOCATIONS[2]}};
+}
+function saveEmergencyLocations(){try{localStorage.setItem('pawcare-emergency-locations',JSON.stringify(emergencyLocations))}catch{}}
+function updateEmergencyLocationInputs(){for(const id of ['1','2']){$(`emergencyX${id}`).value=emergencyLocations[id].x;$(`emergencyY${id}`).value=emergencyLocations[id].y}}
+function transform(x,y,w,h){
+  const scale=Math.min((plot.right-plot.left)/w,(plot.bottom-plot.top)/h);
+  const x0=(600-w*scale)/2;
+  const y0=(390-h*scale)/2;
+  return {x:x0+x*scale,y:y0+y*scale,scale,x0,y0};
+}
+function svgEl(name,attrs={}){const el=document.createElementNS(SVG_NS,name);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);return el}
+function drawGrid(id,w,h){
+  const root=$(id);root.replaceChildren();
+  const a=transform(0,0,w,h),b=transform(w,h,w,h),left=a.x,right=b.x,top=a.y,bottom=b.y;
+  root.append(svgEl('rect',{x:left,y:top,width:right-left,height:bottom-top,class:'editor-boundary'}));
+  const stepX=w<=100?10:50,stepY=h<=100?10:50;
+  for(let x=stepX;x<w;x+=stepX){const p=transform(x,0,w,h);root.append(svgEl('line',{x1:p.x,y1:top,x2:p.x,y2:bottom,class:'editor-grid'}))}
+  for(let y=stepY;y<h;y+=stepY){const p=transform(0,y,w,h);root.append(svgEl('line',{x1:left,y1:p.y,x2:right,y2:p.y,class:'editor-grid'}))}
+  root.append(svgEl('line',{x1:left,y1:bottom,x2:right,y2:bottom,class:'editor-axis'}),svgEl('line',{x1:left,y1:top,x2:left,y2:bottom,class:'editor-axis'}));
+  const x0=svgEl('text',{x:left,y:bottom+16,class:'editor-axis-label','text-anchor':'middle'});x0.textContent='0';root.append(x0);
+  const xmax=svgEl('text',{x:right,y:bottom+16,class:'editor-axis-label','text-anchor':'middle'});xmax.textContent=`${w} cm`;root.append(xmax);
+  const y0=svgEl('text',{x:left-8,y:top+3,class:'editor-axis-label','text-anchor':'end'});y0.textContent='0';root.append(y0);
+  const ymax=svgEl('text',{x:left-8,y:bottom+3,class:'editor-axis-label','text-anchor':'end'});ymax.textContent=`${h} cm`;root.append(ymax);
+}
+function routePath(w,h,mode=routePreviewMode,area=selectedArea){
+  const routeKeys=mode==='single'?['start',area,'start']:['start','A','B','C','start'];
+  return routeKeys.map((key,i)=>{const p=transform(points[key].x,points[key].y,w,h);return `${i?'L':'M'}${p.x} ${p.y}`}).join(' ');
+}
+function placePoint(id,key,w,h){
+  const group=$(id),p=transform(points[key].x,points[key].y,w,h);
+  group.setAttribute('transform',`translate(${p.x} ${p.y})`);
+  const text=group.querySelector('text');text.setAttribute('x','0');text.setAttribute('y','-15');text.textContent=LABELS[key];
+}
+function updatePointInputs(){
+  for(const key of KEYS){const row=document.querySelector(`.point-row[data-key="${key}"]`);row.querySelector('[data-coordinate="x"]').value=points[key].x;row.querySelector('[data-coordinate="y"]').value=points[key].y;}
+}
+function updateSummary(){
+  const {w,h}=getCourseDims();
+  const pointText=KEYS.map(k=>`${LABELS[k]}(${points[k].x}, ${points[k].y})`).join(' · ');
+  $('courseSummary').textContent=`${w} × ${h}cm 지도 · ${pointText}`;
+  $('pointSummary').innerHTML=`이동 순서 <strong>${routePreviewMode==='single'?`출발점 → ${selectedArea} → 출발점`:'출발점 → A → B → C → 출발점'}</strong><br>지도 왼쪽 위가 (0, 0)이고 Y값은 아래쪽으로 커집니다.<br>예시 코스는 C에서 출발점으로 90° 꺾이도록 배치했습니다. 점을 바꾸면 필요한 회전각도 달라집니다.<br>위치는 엔코더 없이 이동 시간과 기울기로 추정합니다.`;
+  $('mapSizeLabel').textContent=`${w} × ${h} cm`;
+  $('routeModePill').textContent=routePreviewMode==='single'?`선택 경로 · 출발→${selectedArea}→출발`:'순차 경로 · 출발→A→B→C→출발';
+  document.querySelectorAll('[data-direct-area]').forEach(button=>{const selected=routePreviewMode==='single'&&button.dataset.directArea===selectedArea;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))});
+}
+function renderMaps(){
+  const {w,h}=getCourseDims();if(!(w>0&&h>0))return;
+  drawGrid('mainGrid',w,h);drawGrid('editorGrid',w,h);
+  renderEmergencyZones(w,h);
+  $('route').setAttribute('d',routePath(w,h));$('editorRoute').setAttribute('d',routePath(w,h));
+  for(const key of KEYS)for(const id of ELEMENTS[key])placePoint(id,key,w,h);
+  updateSummary();updatePointInputs();
+}
+function renderEmergencyZones(w,h){
+  for(const id of ['1','2']){const marker=$(`emergencyZone${id}`),pos=emergencyLocations[id];if(pos.x<0||pos.x>w||pos.y<0||pos.y>h){marker.style.display='none';continue}const p=transform(pos.x,pos.y,w,h);marker.setAttribute('transform',`translate(${p.x} ${p.y})`);marker.style.display=''}
+}
+function clamp(value,min,max){return Math.max(min,Math.min(max,value))}
+function setCoordinate(key,axis,value){
+  const {w,h}=getCourseDims();const max=axis==='x'?w:h;
+  points[key][axis]=Math.round(clamp(Number(value)||0,0,max)*10)/10;
+  updatePointInputs();renderMaps();savePoints();
+}
+function getRoutePayload(){return Object.fromEntries(KEYS.map(k=>[k,[points[k].x,points[k].y]]))}
+function validateCourse(){
+  const {w,h}=getCourseDims();
+  if(w<10||w>300||h<10||h>300){toast('지도 가로·세로는 10~300cm로 설정해 주세요.');return false}
+  for(const key of KEYS)if(points[key].x<0||points[key].x>w||points[key].y<0||points[key].y>h){toast('출발점과 배송지 점을 지도 경계 안에 놓아 주세요.');return false}
+  for(let i=0;i<KEYS.length;i++)for(let j=i+1;j<KEYS.length;j++){const a=points[KEYS[i]],b=points[KEYS[j]];if(Math.hypot(a.x-b.x,a.y-b.y)<1){toast('출발점과 배송지 점은 1cm 이상 떨어뜨려 주세요.');return false}}
+  return true;
+}
+function svgCoordFromPointer(event){
+  const svg=$('courseEditorMap'),p=new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  const {w,h}=getCourseDims(),base=transform(0,0,w,h),scale=base.scale;
+  return {x:Math.round(clamp((p.x-base.x)/scale,0,w)),y:Math.round(clamp((p.y-base.y)/scale,0,h))};
+}
+let draggingKey=null;
+for(const marker of document.querySelectorAll('#courseEditorMap .editable')){
+  marker.addEventListener('pointerdown',event=>{draggingKey=marker.dataset.key;marker.setPointerCapture(event.pointerId);event.preventDefault()});
+  marker.addEventListener('pointermove',event=>{if(draggingKey!==marker.dataset.key)return;const p=svgCoordFromPointer(event);points[draggingKey]=p;updatePointInputs();renderMaps();savePoints()});
+  marker.addEventListener('pointerup',()=>{draggingKey=null});
+  marker.addEventListener('pointercancel',()=>{draggingKey=null});
+  marker.addEventListener('keydown',event=>{const step=event.shiftKey?5:1;const delta={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[event.key];if(!delta)return;event.preventDefault();const key=marker.dataset.key,{w,h}=getCourseDims();points[key].x=clamp(points[key].x+delta[0],0,w);points[key].y=clamp(points[key].y+delta[1],0,h);updatePointInputs();renderMaps();savePoints()});
+}
+for(const row of document.querySelectorAll('.point-row'))for(const input of row.querySelectorAll('input'))input.addEventListener('change',()=>setCoordinate(row.dataset.key,input.dataset.coordinate,input.value));
+for(const id of ['courseWidth','courseHeight'])$(id).addEventListener('change',()=>{const {w,h}=getCourseDims();if(w<10||w>300||h<10||h>300){toast('지도 가로·세로는 10~300cm로 설정해 주세요.');return}for(const key of KEYS){points[key].x=clamp(points[key].x,0,w);points[key].y=clamp(points[key].y,0,h)}renderMaps();savePoints()});
+for(const button of document.querySelectorAll('[data-size]'))button.addEventListener('click',()=>{const [w,h]=button.dataset.size.split(',').map(Number);$('courseWidth').value=w;$('courseHeight').value=h;for(const key of KEYS){points[key].x=clamp(points[key].x,0,w);points[key].y=clamp(points[key].y,0,h)}renderMaps();savePoints()});
+$('examplePointsBtn').onclick=()=>{points=Object.fromEntries(KEYS.map(k=>[k,{...DEFAULT_POINTS[k]}]));$('courseWidth').value=50;$('courseHeight').value=50;renderMaps();savePoints();toast('50 × 50cm 예시 점을 불러왔습니다.')};
+function setRobotPoint(x,y,heading,trail){const {w,h}=getCourseDims(),origin=points.start,relX=Number(x)||0,relY=Number(y)||0,p=transform(origin.x+relX,origin.y+relY,w,h);$('robotMarker').setAttribute('transform',`translate(${p.x} ${p.y}) rotate(${Number(heading)||0})`);const mapX=origin.x+relX,mapY=origin.y+relY;$('positionValue').textContent=`(${mapX.toFixed(1)}, ${mapY.toFixed(1)})`;$('mapPosition').textContent=`추정 위치 (${mapX.toFixed(1)}, ${mapY.toFixed(1)})cm · 방향 ${(Number(heading)||0).toFixed(0)}°`;const trailPoints=(trail||[]).map(point=>{const t=transform(origin.x+(Number(point.x)||0),origin.y+(Number(point.y)||0),w,h);return `${t.x},${t.y}`}).join(' ');$('trail').setAttribute('points',trailPoints)}
+function renderDestinations(events,currentArea){
+  const progress={A:{arrived:false,person:false,greeting:false,qr:false,qrMiss:false,personMiss:false,evac:false,evacMiss:false},B:{arrived:false,person:false,greeting:false,qr:false,qrMiss:false,personMiss:false,evac:false,evacMiss:false},C:{arrived:false,person:false,greeting:false,qr:false,qrMiss:false,personMiss:false,evac:false,evacMiss:false}};
+  for(const event of events){
+    const area=String(event.area||'');if(!progress[area])continue;const item=progress[area];
+    if(event.event==='ARRIVED')item.arrived=true;
+    if(event.event==='PERSON_CARD_FOUND')item.person=true;
+    if(event.event==='GREETING')item.greeting=true;
+    if(event.event==='GO_QR_SCANNED')item.qr=true;
+    if(event.event==='QR_NOT_SCANNED')item.qrMiss=true;
+    if(event.event==='PERSON_NOT_FOUND')item.personMiss=true;
+    if(event.event==='EVACUATION_ALERT')item.evac=true;
+    if(event.event==='EVACUATION_PERSON_NOT_FOUND')item.evacMiss=true;
+  }
+  for(const area of ['A','B','C']){
+    const element=$('dest'+area),item=progress[area],done=item.qr,warning=item.qrMiss||item.personMiss||item.evacMiss;
+    element.classList.toggle('done',done);element.classList.toggle('warn',warning&&!done);element.classList.toggle('active',currentArea===area&&!done&&!warning);
+    element.querySelector('.dest-state').textContent=done?'완료':item.evacMiss?'대피 대상 미인식':item.qrMiss?'QR 미인식':item.personMiss?'인물 미인식':currentArea===area?'진행 중':item.evac?'대피 알림':item.greeting?'인사 완료':item.person?'카드 확인':item.arrived?'도착':'대기';
+    element.querySelector('.dest-progress').textContent=item.evacMiss?'재난 영향 지역 · 60초 동안 대상 미인식':item.evac&&item.qr?'대피 알림 완료 · GO QR 확인 완료':item.evac?'재난 영향 지역 · 대피 알림 실행':item.qr?'GO QR 확인 완료':item.qrMiss?'3회 안내 후 관제 보고':item.personMiss?'60초 대기 후 관제 보고':item.greeting?'인사 동작 완료':item.person?'인물 카드 확인 · GO QR 대기':item.arrived?'인물 카드 CLASS'+({A:2,B:3,C:4}[area])+' 확인 중':'인물 확인 · GO QR 대기';
+  }
+}
+function eventTitle(e){const map={RUN_START:'운행 시작',RUN_END:'운행 종료',ROUTE_START:'배송 시작',ARRIVED:'배송지 도착',PERSON_CARD_FOUND:'인물 카드 인식',GREETING:'인사 동작',GO_QR_SCANNED:'GO QR 인식',QR_NOT_SCANNED:'GO QR 미인식',PERSON_NOT_FOUND:'인물 카드 미인식',HAZARD_CLASS1:'위험 요소 감지',HAZARD_CLEARED:'위험 해제',RETURN_START:'복귀 시작',RETURN_HOME_REQUESTED:'귀환 요청',RETURN_HOME_START:'출발점 귀환',ROUTE_REDIRECT_REQUESTED:'목적지 변경 요청',ROUTE_REDIRECTED:'새 목적지로 경로 변경',SEQUENTIAL_ROUTE_START:'순차 배송 시작',SEQUENTIAL_NEXT_WAYPOINT:'다음 배송지 이동',SEQUENTIAL_ROUTE_DONE:'배송 완료',RETURNED:'출발점 복귀',ROUTE_ABORTED:'경로 중단',EMERGENCY_SIGNAL:'재난 신호 수신',EMERGENCY_ACKNOWLEDGED:'재난 신호 관제 확인',EMERGENCY_CLEARED:'재난 신호 해제',OBS_FIRE_SIGNAL:'관측소 화재 감지',OBS_FIRE_CLEARED:'관측소 화재 신호 해제',EVACUATION_ALERT:'대피 알림',EVACUATION_PERSON_NOT_FOUND:'대피 대상 인식 실패',ERROR:'오류',USER_ABORT:'사용자 정지'};return map[e]||e}
+function formatRunTime(value){if(!value)return '—';const date=new Date(value);return Number.isNaN(date.getTime())?value:date.toLocaleString('ko-KR',{hour12:false})}
+function renderRunHistory(runs){
+  const body=$('runHistoryRows');body.replaceChildren();
+  if(!runs.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='아직 저장된 운행이 없습니다. 배송을 시작하면 이곳에 누적됩니다.';row.append(cell);body.append(row);return}
+  for(const run of runs){
+    const row=document.createElement('tr');
+    const started=document.createElement('td');started.textContent=formatRunTime(run.started_at);const id=document.createElement('small');id.className='run-history-id';id.textContent=run.visit_id;started.append(id);
+    const mode=document.createElement('td');mode.textContent=run.mode||'배송';
+    const areas=document.createElement('td');areas.textContent=(run.areas||[]).join(' → ')||'도착 기록 없음';
+    const outcomeCell=document.createElement('td'),outcome=document.createElement('span');outcome.className='run-outcome';outcome.textContent=run.outcome||'기록 확인';if(run.outcome==='완료 · 복귀')outcome.classList.add('good');else if(['오류','중단'].includes(run.outcome))outcome.classList.add('bad');else if(run.outcome==='진행 중')outcome.classList.add('active');outcomeCell.append(outcome);
+    const detailsCell=document.createElement('td'),details=document.createElement('details');details.className='run-details';const summary=document.createElement('summary');summary.textContent=`기록 ${(run.events||[]).length}개`;details.append(summary);const list=document.createElement('ol');list.className='run-event-list';
+    for(const item of (run.events||[])){const entry=document.createElement('li'),time=document.createElement('time');time.textContent=item.time?new Date(item.time).toLocaleTimeString('ko-KR',{hour12:false})+' ':'';entry.append(time,document.createTextNode(eventTitle(item.event)+(item.detail?` · ${item.detail}`:'')));list.append(entry)}
+    details.append(list);detailsCell.append(details);row.append(started,mode,areas,outcomeCell,detailsCell);body.append(row);
+  }
+}
+async function loadRunHistory(){
+  try{const response=await fetch('/api/runs',{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error||'기록을 읽을 수 없습니다.');renderRunHistory(data.runs||[]);$('runHistoryStatus').textContent=`화면 표시 ${(data.runs||[]).length}회 · 최근 30회 · 전체 기록은 CSV에 계속 누적됩니다.`}
+  catch(error){$('runHistoryStatus').textContent='기록을 불러오지 못했습니다: '+error.message;renderRunHistory([])}
+}
+function showPage(target){
+  const history=target==='history';$('dashboardPage').hidden=history;$('runHistoryPage').hidden=!history;
+  $('pageTitle').textContent=history?'운행 기록':target==='connection'?'Python 연결':'관제 대시보드';
+  document.querySelectorAll('[data-nav-target]').forEach(button=>button.classList.toggle('active',button.dataset.navTarget===target));
+  if(history){window.scrollTo({top:0,behavior:'smooth'});loadRunHistory()}
+  else if(target==='connection'){requestAnimationFrame(()=>$('connectionPanel').scrollIntoView({behavior:'smooth',block:'center'}))}
+  else{window.scrollTo({top:0,behavior:'smooth'})}
+}
+document.querySelectorAll('[data-nav-target]').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.navTarget)));
+function stationFireAlerts(stations={}){return Object.entries(stations).filter(([id,sample])=>sample&&sample.flame===1).map(([id,sample])=>({label:'화재 센서',emergency_type:'FIRE',location:`관측소 ${id}`,location_code:id,affected_areas:id==='1'?['A','B']:['B','C'],time:sample.received_at,source:'station_sensor'}))}
+function renderObservationStations(stations={}){const ids=['1','2'];let freshCount=0;const fires=[];for(const id of ids){const sample=stations[id],tile=$(`observationStation${id}`);tile.classList.toggle('fire',!!sample&&sample.flame===1);$(`observationFresh${id}`).textContent=!sample?'수신 대기':sample.fresh?(++freshCount,'연결됨'):`신호 끊김 ${sample.age_s}s`;$(`observationFlame${id}`).textContent=sample?(sample.flame===1?'감지':'미감지'):'—';$(`observationGasAO${id}`).textContent=sample?String(sample.gas_analog):'—';$(`observationGasDO${id}`).textContent=sample?String(sample.gas_digital):'—';if(sample&&sample.flame===1)fires.push(id)}$('observationStatus').textContent=fires.length?`화재 감지 · ${fires.join(',')}번`:`관측소 연결 ${freshCount}/2`;}
+function renderEmergency(s){
+  const stationAlerts=stationFireAlerts(s.observation_stations||{});
+  const emergencies=[...Object.values(s.active_emergencies||{}),...stationAlerts].sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+  const active=s.active_emergency||(stationAlerts.length?stationAlerts[stationAlerts.length-1]:null)||(emergencies.length?emergencies[emergencies.length-1]:null),panel=$('emergencyPanel'),marker=$('emergencyMarker');
+  panel.classList.toggle('active',emergencies.length>0);$('emergencyAckBtn').disabled=!active||active.source==='station_sensor'||!!active.acknowledged;
+  $('emergencyTitle').textContent=emergencies.length?`${emergencies.length}개 재난 신호 활성 · 최근 ${active.label||'재난'}`:'활성 재난 신호 없음';
+  $('emergencyMessage').textContent=emergencies.length?'라디오 경보는 관제에서 해제하고, 관측소 화재 경보는 불꽃 센서가 미감지되면 해제됩니다.':'라디오 E/F/G/H 및 관측소 불꽃 센서 · 1번은 A/B, 2번은 B/C 대피 대상';
+  $('emergencyPill').textContent=emergencies.length?'대피 알림 유지':'대기';
+  $('emergencySymbol').textContent=emergencies.length?'!':'✓';
+  let pos=null;const {w,h}=getCourseDims();
+  if(active){
+    if(active.location_code&&emergencyLocations[active.location_code])pos={x:emergencyLocations[active.location_code].x,y:emergencyLocations[active.location_code].y};
+    else if(active.map_point&&points[active.map_point])pos={x:points[active.map_point].x,y:points[active.map_point].y};
+    else if(active.x_cm!==null&&active.x_cm!==undefined&&active.y_cm!==null&&active.y_cm!==undefined&&Number.isFinite(Number(active.x_cm))&&Number.isFinite(Number(active.y_cm)))pos={x:Number(active.x_cm),y:Number(active.y_cm)};
+  }
+  const outsideMap=!!pos&&(pos.x<0||pos.x>w||pos.y<0||pos.y>h);
+  const locationPoint=active&&active.location_code&&emergencyLocations[active.location_code]?` · 지도 좌표 (${emergencyLocations[active.location_code].x}, ${emergencyLocations[active.location_code].y})cm`:'';
+  $('emergencyLocation').textContent=active?`최근 신호 위치: ${active.location||'위치 정보 없음'}${locationPoint}${outsideMap?` · 현재 ${w}×${h}cm 지도 범위 밖`:''}${active.time?' · 수신 '+new Date(active.time).toLocaleString('ko-KR',{hour12:false}):''}`:'micro:bit에는 GPS가 없어 지도 좌표는 직접 설정합니다.';
+  if(pos&&pos.x>=0&&pos.x<=w&&pos.y>=0&&pos.y<=h){const p=transform(pos.x,pos.y,w,h);marker.setAttribute('transform',`translate(${p.x} ${p.y})`);marker.style.display='';$('emergencyMarkerLabel').textContent=active.label||'재난'}else marker.style.display='none';
+  for(const id of ['1','2'])$('emergencyZone'+id).classList.toggle('active',emergencies.some(event=>String(event.location_code)===id));
+  const activeList=$('emergencyActiveList');activeList.replaceChildren();
+  for(const event of emergencies){
+    const row=document.createElement('div');row.className='emergency-active-row';
+    const copy=document.createElement('div');copy.className='emergency-active-copy';
+    const head=document.createElement('strong');head.textContent=`위치 ${event.location_code||'?'} · ${event.label||'재난'}${event.acknowledged?' · 관제 확인':''}`;
+    const detail=document.createElement('div');detail.textContent=`대피 대상 배송지: ${(event.affected_areas||[]).join(' · ')||'지정되지 않음'}`;copy.append(head,detail);
+    const ack=document.createElement('button');ack.type='button';ack.className='btn';ack.textContent=event.source==='station_sensor'?'센서 감지':event.acknowledged?'확인됨':'관제 확인';ack.disabled=event.source==='station_sensor'||!!event.acknowledged;ack.dataset.emergencyAction='ack_emergency';ack.dataset.location=event.location_code||'';
+    const clear=document.createElement('button');clear.type='button';clear.className='btn danger';clear.textContent=event.source==='station_sensor'?'센서값으로 해제':'재난 해제';clear.disabled=event.source==='station_sensor';clear.dataset.emergencyAction='clear_emergency';clear.dataset.location=event.location_code||'';
+    row.append(copy,ack,clear);activeList.append(row);
+  }
+  const history=$('emergencyHistory');history.replaceChildren();
+  for(const item of (s.emergency_history||[]).slice(0,4)){const row=document.createElement('div');row.className='emergency-history-item';const when=item.time?new Date(item.time).toLocaleTimeString('ko-KR',{hour12:false}):'';row.textContent=`${when} · ${item.label||'재난'} · ${item.location||'위치 미지정'}`;history.append(row)}
+}
+function renderStatus(s){
+  lastStatus=s;
+  $('headLedState').textContent=s.head_led_on?'켜짐 · 초롱초롱':'꺼짐';
+  const ledReady=!s.busy||!!s.connected;
+  $('headLedOnBtn').disabled=!ledReady;
+  $('headLedOffBtn').disabled=!ledReady;
+  $('serialPill').textContent=s.connected?'로보독 연결됨':s.busy?'로보독 연결 중':'Python 서버 연결됨';$('serialPill').classList.toggle('on',!!s.connected);
+  const microbitLast=s.microbit_last_rx?` · 최근 신호: ${s.microbit_last_rx}`:'';
+  const microbitBaud=s.microbit_baudrate||115200;
+  $('microbitHint').textContent=s.microbit_connected?`관측소 OBS 수신 · ${s.microbit_port||'USB'} / ${microbitBaud}${microbitLast}`:(s.microbit_status||'관측소 micro:bit PC USB 연결을 확인하세요.');
+  $('robotState').textContent=s.state||'대기';$('currentArea').textContent=s.current_area||'출발점';$('aiClass').textContent=s.ai_class===null||s.ai_class===undefined?'대기':`CLASS${s.ai_class}`;
+  $('rollValue').textContent=(Number(s.roll)||0).toFixed(1);$('pitchValue').textContent=(Number(s.pitch)||0).toFixed(1);$('rollMini').textContent=(Number(s.roll)||0).toFixed(1)+'°';$('pitchMini').textContent=(Number(s.pitch)||0).toFixed(1)+'°';setRobotPoint(s.x_cm,s.y_cm,s.heading_deg,s.trail);renderEmergency(s);
+  const sensor=s.microbit_sensor;
+  $('microbitSound').textContent=sensor?String(sensor.sound):'—';$('microbitLight').textContent=sensor?String(sensor.light):'—';
+  $('microbitSegment').textContent=sensor?String(sensor.segment):'—';$('microbitPhase').textContent=sensor?({TURN:'회전',STRAIGHT:'직진',DONE:'완료'}[sensor.phase]||sensor.phase):'단계 대기';
+  $('microbitElapsed').textContent=sensor?(Number(sensor.elapsed_ms)/1000).toFixed(1):'—';
+  $('microbitSensorStatus').textContent=sensor&&sensor.received_at?`수신 ${new Date(sensor.received_at).toLocaleTimeString('ko-KR',{hour12:false})}`:'기기 내부 기록';
+  renderObservationStations(s.observation_stations||{});
+  $('route').classList.toggle('active',!!s.busy);const events=s.events||[];renderDestinations(events,s.current_area);
+  const stationFires=stationFireAlerts(s.observation_stations||{});const affectedAreas=new Set([...Object.values(s.active_emergencies||{}).flatMap(event=>event.affected_areas||[]),...stationFires.flatMap(event=>event.affected_areas||[])]);for(const area of ['A','B','C'])$('dest'+area).classList.toggle('emergency-target',affectedAreas.has(area));
+  for(const e of events)if(e.id>lastEventId){const kind=e.event.includes('EMERGENCY_SIGNAL')||e.event.includes('OBS_FIRE_SIGNAL')||e.event.includes('EVACUATION')||e.event.includes('HAZARD')||e.event.includes('NOT_FOUND')||e.event==='ERROR'||e.event.includes('ABORT')?'bad':e.event.includes('EMERGENCY_ACKNOWLEDGED')?'warn':'ok';addEvent(eventTitle(e.event),e.detail,kind,e.time?new Date(e.time).toLocaleTimeString('ko-KR',{hour12:false}):now());lastEventId=Math.max(lastEventId,e.id)}
+  $('startSeqBtn').disabled=!!s.busy||startPending;$('stopBtn').disabled=!s.busy;$('resumeBtn').disabled=!s.hazard_wait||!s.hazard_clear_confirmed;
+  const canRedirectNow=!!s.busy&&!!s.can_redirect&&!s.hazard_wait;
+  $('returnHomeBtn').disabled=!s.busy||!!s.hazard_wait||s.redirect_area==='HOME';
+  document.querySelectorAll('[data-direct-area]').forEach(button=>button.disabled=startPending||(!!s.busy&&!canRedirectNow));$('resetBtn').disabled=!!s.busy;$('courseConfig').classList.toggle('busy',!!s.busy);
+  document.querySelectorAll('.course-config input,.course-config button').forEach(el=>el.disabled=!!s.busy);
+  $('regionHint').textContent=!s.busy?'A/B/C 버튼은 해당 지역으로 바로 배송하고 출발점으로 복귀합니다.':s.hazard_wait?'위험 정지 중에는 목적지를 바꿀 수 없습니다.':canRedirectNow?'이동 중입니다. A/B/C를 누르면 현재 회전·짧은 이동 호출 후 멈추고 새 지역으로 향합니다.':`현재 ${s.state||'작업'} 단계에서는 목적지를 바꿀 수 없습니다. 이동이 시작되면 버튼이 켜집니다.`;
+  document.querySelector('.status-banner').classList.toggle('emergency-active',!!s.active_emergency||stationFires.length>0);
+  if(s.active_emergency)setBanner(`${s.active_emergency.label||'재난'} 신호 접수`,`영향 배송지: ${(s.active_emergency.affected_areas||[]).join('·')||'미지정'} · 배송지 도착 후 대상 인식 시 대피 알림`);else if(stationFires.length)setBanner('관측소 화재 신호 접수',`영향 배송지: ${[...new Set(stationFires.flatMap(event=>event.affected_areas))].join('·')} · 해당 지역 도착 후 인물 카드 인식 시 대피 알림`);else if(s.hazard_wait&&!s.hazard_clear_confirmed)setBanner('위험 요소 감지','CLASS1이 계속 보입니다. 위험 요소를 치우면 재개 버튼이 활성화됩니다.');else if(s.hazard_wait)setBanner('위험 제거 확인','주변을 확인한 뒤 CLASS1 제거 확인 후 재개를 누르세요.');else if(s.redirect_area==='HOME')setBanner('귀환 요청','현재 추정 위치에서 출발점으로 경로를 바꿉니다.');else if(s.redirect_area)setBanner('목적지 변경 요청',`${s.redirect_area} 지역으로 경로를 바꿉니다.`);else if(s.busy)setBanner('운행 중',s.state||'로보독이 작업 중입니다.');else if(!s.connected)setBanner('대기 중','Python 관제 서버와 재난 신호 수신을 확인하세요.');else setBanner('관제 중','재난 신호 수신을 기다립니다.');
+}
+async function command(action,extra={}){try{const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...extra})});const data=await r.json();if(!r.ok)throw new Error(data.error||'요청 실패');toast(data.message||'명령을 전달했습니다.');return true}catch(e){toast('명령 전달 실패: '+e.message);return false}}
+async function startDelivery(mode,area){if(!validateCourse())return;if(startPending){toast('운행 시작을 처리 중입니다. 이동 상태가 표시되면 목적지를 바꿀 수 있어요.');return}if(lastStatus&&lastStatus.busy){if(mode!=='single'||!lastStatus.can_redirect||lastStatus.hazard_wait){toast('로보독이 이동 중일 때만 목적지를 바꿀 수 있습니다.');return}selectedArea=area;routePreviewMode='single';renderMaps();savePoints();const accepted=await command('redirect',{area});await poll();return accepted}routePreviewMode=mode;if(area)selectedArea=area;renderMaps();savePoints();const {w,h}=getCourseDims();startPending=true;document.querySelectorAll('[data-direct-area]').forEach(button=>button.disabled=true);$('startSeqBtn').disabled=true;const accepted=await command('start',{mode,area,side_x:w,side_y:h,course_points:getRoutePayload()});startPending=false;await poll();return accepted}
+async function poll(){try{const r=await fetch('/api/status',{cache:'no-store'});if(!r.ok)throw new Error('server');renderStatus(await r.json())}catch{$('serialPill').textContent='Python 서버 연결 안 됨';$('serialPill').classList.remove('on');setBanner('연결 끊김','Python 프로그램을 실행하고 관제 페이지를 다시 여세요.')}}
+  $('startSeqBtn').onclick=()=>startDelivery('sequential');document.querySelectorAll('[data-direct-area]').forEach(button=>button.onclick=()=>startDelivery('single',button.dataset.directArea));$('stopBtn').onclick=()=>command('stop');$('resumeBtn').onclick=()=>command('resume_hazard');
+$('resetBtn').onclick=()=>{$('courseWidth').value=50;$('courseHeight').value=50;points=Object.fromEntries(KEYS.map(k=>[k,{...DEFAULT_POINTS[k]}]));renderMaps();savePoints();toast('예시 코스로 초기화했습니다.')};
+updateEmergencyLocationInputs();
+$('headLedOnBtn').onclick=async()=>{if(await command('head_led_on'))await poll()};
+$('headLedOffBtn').onclick=async()=>{if(await command('head_led_off'))await poll()};
+$('returnHomeBtn').onclick=async()=>{if(!confirm('현재 배송 순서를 멈추고 출발점으로 돌아갈까요?'))return;if(await command('return_home'))await poll()};
+for(const id of ['1','2'])for(const axis of ['x','y'])$(`emergency${axis.toUpperCase()}${id}`).addEventListener('change',()=>{const input=$(`emergency${axis.toUpperCase()}${id}`),value=Number(input.value);if(!Number.isFinite(value)){updateEmergencyLocationInputs();return}emergencyLocations[id][axis]=Math.round(clamp(value,0,300)*10)/10;updateEmergencyLocationInputs();saveEmergencyLocations();renderMaps();if(lastStatus)renderEmergency(lastStatus);toast(`재난 위치 ${id}번 좌표를 저장했습니다.`)});
+$('clearEvents').onclick=()=>{$('events').replaceChildren();toast('현재 이벤트 표시를 지웠습니다.')};
+$('emergencyAckBtn').onclick=async()=>{const location_code=lastStatus&&lastStatus.active_emergency?lastStatus.active_emergency.location_code:null;await command('ack_emergency',{location_code});await poll()};
+$('emergencyActiveList').addEventListener('click',async event=>{const button=event.target.closest('[data-emergency-action]');if(!button)return;await command(button.dataset.emergencyAction,{location_code:button.dataset.location});await poll()});
+renderMaps();setInterval(()=>$('clock').textContent=now(),1000);setInterval(poll,500);setInterval(()=>{if(!$('runHistoryPage').hidden)loadRunHistory()},10000);$('clock').textContent=now();poll();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
