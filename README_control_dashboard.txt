@@ -1,33 +1,29 @@
-PawCare 배송 관제 · RoboDog + 재난 micro:bit 게이트웨이
+PawCare 배송 관제 · RoboDog + micro:bit 관측소
 
-실행 파일
-- robodog_abc_delivery.py : PC Thonny용 Python. RoboDog 배송, USB 재난 신호 수신, 로컬 웹 서버를 함께 실행합니다.
-- pawcare_control.html : 배송 지도와 로봇 상태, 재난 정보, 운행 기록을 보여주는 화면입니다.
-- microbit_disaster_receiver_makecode.py : 라디오 재난 신호를 받아 `EMERGENCY:E1` 한 줄로 PC에 전달합니다.
+최종 연동 코드
+- robodog_abc_delivery.py : Thonny에서 실행하는 Python 제어 프로그램입니다. 배송, 인물·QR 확인, 재난 정지, 관제 HTML 서버를 처리합니다.
+- microbit_disaster_station_sender_makecode.ts : 관측소 센서 송신 micro:bit MakeCode JavaScript입니다.
+- microbit_robodog_radio_receiver_makecode.ts : RoboDog에 장착하는 라디오 수신 micro:bit MakeCode JavaScript입니다.
 
 장치 연결
-- RoboDog: PC USB, 프로젝트 기본 포트 COM8.
-- 재난 수신 게이트웨이 micro:bit: PC USB, Python 기본 포트 COM6 / 115200 baud.
-- 송신 micro:bit: 구간에 두고 그룹 1로 E1/F2/G1/H2 형식의 신호를 보냅니다.
-- 포트 번호는 Windows 장치 관리자에서 확인합니다. 다른 번호라면 Python 파일 상단의 ROBODOG_PORT 또는 MICROBIT_PORT 기본값을 바꿉니다.
+- 관측소 송신 micro:bit: PC USB COM17, 115200 baud. 센서값 OBS 패킷과 E/H 재난 신호를 Python에 보냅니다.
+- RoboDog 장착 수신 micro:bit: RoboDog에서 전원 공급. PC USB/COM 포트에는 연결하지 않습니다.
+- RoboDog: PC USB COM8.
+- 두 micro:bit의 라디오 그룹은 1입니다.
+- 포트가 다르면 Python 상단의 ROBODOG_PORT 또는 MICROBIT_PORT 환경 설정을 확인합니다.
 
-재난 신호
-- 앞 글자 E=지진, F=화재, G=가스 유출, H=무더위.
-- 뒤 숫자 1은 A·B, 2는 B·C에 적용됩니다.
-- 재난 신호가 오면 로보독 동작을 정지하고 눈 LED에 종류별 모양을 표시한 뒤 관제 명령을 기다립니다.
-- 화면의 `대피 안내`를 누르면 현재 배송 계획에서 영향받는 점으로 이동해 빨간 몸체 LED와 짖기 소리로 알립니다. 순차 배송은 위치 1일 때 A→B, 위치 2일 때 B→C를 방문합니다. 단일 배송이면 선택한 배송지가 영향 지역에 포함될 때 그 점에서 안내합니다.
-- `출발점 복귀`를 누르면 진행 중인 배송을 멈추고 출발점으로 경로를 바꿉니다.
-- 대피 안내가 끝나면 중단했던 배송 동작으로 돌아갑니다. 실제 이동 경로는 지도 점과 자이로 추정에 따라 계산합니다.
+신호
+- E=흔들림 지진, F=화재, G=가스 유출, H=무더위.
+- 번호 1은 A·B, 2는 B·C 영향 위치입니다. 현재 관측소 코드는 번호 1로 설정되어 있습니다.
+- 관측소는 500ms마다 OBS,1,화재감지,가스아날로그,가스감지 값을 COM17로 보냅니다.
+- 화재·가스는 OBS 센서값으로 Python이 감지하고, 흔들림·무더위는 EMERGENCY:E1/H1 메시지로 전달합니다.
+- 재난 신호는 라디오로 RoboDog 장착 micro:bit에도 표시합니다.
 
 실행 순서
-1. 송신용 micro:bit와 수신 게이트웨이용 micro:bit에 각각 MakeCode 코드를 올립니다. 두 프로그램 모두 radio group 1이어야 합니다.
-2. 수신 micro:bit를 PC USB에 연결하고 포트를 확인합니다. 시리얼 모니터 등 COM 포트를 사용하는 다른 프로그램은 닫습니다.
-3. RoboDog를 PC에 연결합니다.
-4. 압축을 푼 뒤 `robodog_abc_delivery.py`와 `pawcare_control.html`을 같은 폴더에 둡니다. ZIP 안에서 직접 실행하지 마세요.
-5. Thonny에서 `robodog_abc_delivery.py`를 실행합니다. 브라우저에서 `http://127.0.0.1:8765/`를 엽니다.
-6. 배송 운행을 시작하고 송신 micro:bit에서 시험 신호를 보냅니다. 화면의 재난 카드에서 대피 안내 또는 출발점 복귀를 선택합니다.
+1. MakeCode에서 송신 코드를 관측소 micro:bit에, 수신 코드를 RoboDog 장착 micro:bit에 다운로드합니다.
+2. RoboDog를 COM8로, 관측소 micro:bit를 COM17로 PC에 연결합니다.
+3. Thonny에서 robodog_abc_delivery.py를 실행합니다.
+4. 브라우저에서 http://127.0.0.1:8765/ 를 엽니다.
+5. 시험은 로보독 다리를 바닥에서 띄우거나 안전한 낮은 속도로 진행하고 센서 임계값을 확인합니다.
 
-연결 주의
-- 수신 micro:bit를 RoboDog에만 연결해 둔 경우 PC Python은 USB Serial을 받을 수 없습니다. 이 구성에서는 게이트웨이를 PC USB에 연결해야 합니다.
-- GitHub Pages는 정적 웹페이지라 COM 포트와 로봇을 직접 제어하지 않습니다. 실제 작동에는 Python 서버와 PC 로컬 관제 화면이 필요합니다.
-- 로보독·재난 신호의 실제 동작은 기기에서 별도로 시험해야 합니다. 지도 위치는 엔코더나 GPS 실측이 아니라 이동량과 자이로에 따른 추정값입니다.
+GitHub Pages는 화면을 보여주는 정적 페이지입니다. 실제 COM 통신과 로봇 제어에는 PC에서 Python 프로그램이 실행 중이어야 합니다. 코드를 올린 것과 로보독 실기기에서 정상 작동을 확인한 것은 별개이므로 실제 장비에서 다시 시험하세요.
