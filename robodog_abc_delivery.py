@@ -82,11 +82,11 @@ except NameError:
 DASHBOARD_FILE = SCRIPT_DIR / "pawcare_control.html"
 LOG_FILE = SCRIPT_DIR / "pawcare_delivery_log.csv"
 # Read newline-delimited emergency or observation packets from PC-attached
-# micro:bit receivers. Set MICROBIT_PORTS=COM10,COM7 to listen to multiple
+# micro:bit receivers. Set MICROBIT_PORTS=COM17,COM7 to listen to multiple
 # groups with separate receiver micro:bits; MICROBIT_PORT remains supported.
 _microbit_ports_setting = os.environ.get("MICROBIT_PORTS")
 if _microbit_ports_setting is None:
-    _microbit_ports_setting = os.environ.get("MICROBIT_PORT", "COM10")
+    _microbit_ports_setting = os.environ.get("MICROBIT_PORT", "COM17")
 MICROBIT_PORTS = tuple(dict.fromkeys(
     port.strip() for port in _microbit_ports_setting.split(",") if port.strip()
 ))
@@ -152,7 +152,7 @@ status = {
     "can_redirect": False, "redirect_area": None,
     "microbit_connected": False, "microbit_port": MICROBIT_PORT or "미설정",
     "microbit_baudrate": MICROBIT_BAUDRATE,
-    "microbit_status": "재난 수신 게이트웨이 COM10 연결 대기", "microbit_last_rx": "",
+    "microbit_status": "관측소 센서 micro:bit COM17 연결 대기", "microbit_last_rx": "",
     "microbit_sensor": None,
     "observation_stations": {"1": None, "2": None},
     "active_emergency": None, "active_emergencies": {}, "emergency_history": [],
