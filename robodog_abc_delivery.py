@@ -22,7 +22,7 @@ except ImportError:
 관제 보고는 로컬 파이썬 웹 서버를 통해 HTML 화면에 전송합니다.
 QR은 RoboDog 공개 API로 읽습니다.
 공개 API에 MP3 파일 재생 기능이 없어 현재는 내장 인사 소리로 대체합니다.
-재난 라디오 게이트웨이의 EMERGENCY:E1/F2/G1/H2 신호는 로보독을 정지시키고 관제 명령을 기다립니다. 대피 안내 명령은 현재 배송 계획에 포함된 영향 지점을 방문해 빨간 LED와 짖기 소리로 알린 뒤 배송 경로를 이어갑니다.
+재난 라디오 게이트웨이의 EMERGENCY:E1/F1/G1/H1 신호는 배송 여부와 관계없이 수신하며, 로보독을 정지시키고 관제 명령을 기다립니다. 대피 안내 명령은 현재 배송 계획에 포함된 영향 지점을 방문해 빨간 LED와 짖기 소리로 알린 뒤 배송 경로를 이어갑니다.
 """
 
 ROBOT_PORT = os.environ.get("ROBODOG_PORT", "COM8").strip() or "None"
@@ -81,13 +81,22 @@ except NameError:
     )
 DASHBOARD_FILE = SCRIPT_DIR / "pawcare_control.html"
 LOG_FILE = SCRIPT_DIR / "pawcare_delivery_log.csv"
-# Read newline-delimited emergency or observation packets from the PC-attached micro:bit (COM6 default).
-MICROBIT_PORT = os.environ.get("MICROBIT_PORT", "COM6").strip()
+# Read newline-delimited emergency or observation packets from PC-attached
+# micro:bit receivers. Set MICROBIT_PORTS=COM10,COM7 to listen to multiple
+# groups with separate receiver micro:bits; MICROBIT_PORT remains supported.
+_microbit_ports_setting = os.environ.get("MICROBIT_PORTS")
+if _microbit_ports_setting is None:
+    _microbit_ports_setting = os.environ.get("MICROBIT_PORT", "COM10")
+MICROBIT_PORTS = tuple(dict.fromkeys(
+    port.strip() for port in _microbit_ports_setting.split(",") if port.strip()
+))
+MICROBIT_PORT = ", ".join(MICROBIT_PORTS)
 MICROBIT_BAUDRATE = int(os.environ.get("MICROBIT_BAUDRATE", "115200"))
 MICROBIT_RECONNECT_SECONDS = 2.0
 OBSERVATION_TIMEOUT = 3.0
 OBSERVATION_STATIONS = {"1": ("A", "B"), "2": ("B", "C")}
-FIRE_ACTIVE = 1
+FIRE_ACTIVE = int(os.environ.get("ROBODOG_FLAME_ACTIVE_LEVEL", "1"))
+GAS_ACTIVE = int(os.environ.get("ROBODOG_GAS_ACTIVE_LEVEL", "1"))
 DISASTER_LABELS = {
     "EARTHQUAKE": "지진",
     "FIRE": "화재",
@@ -143,7 +152,7 @@ status = {
     "can_redirect": False, "redirect_area": None,
     "microbit_connected": False, "microbit_port": MICROBIT_PORT or "미설정",
     "microbit_baudrate": MICROBIT_BAUDRATE,
-    "microbit_status": "재난 수신 게이트웨이 COM6 연결 대기", "microbit_last_rx": "",
+    "microbit_status": "재난 수신 게이트웨이 COM10 연결 대기", "microbit_last_rx": "",
     "microbit_sensor": None,
     "observation_stations": {"1": None, "2": None},
     "active_emergency": None, "active_emergencies": {}, "emergency_history": [],
@@ -156,6 +165,7 @@ job_thread = None
 job_lock = threading.Lock()
 log_lock = threading.Lock()
 microbit_shutdown = threading.Event()
+microbit_port_states = {}
 
 
 def record(event, detail=""):
@@ -365,7 +375,7 @@ def refresh_active_emergency_locked():
     status["active_emergency"] = max(active, key=lambda event: event.get("time", "")) if active else None
 
 
-def register_emergency_signal(payload):
+def register_emergency_signal(payload, source="microbit_gateway"):
     """Record an alert, keep it active by zone, and publish affected delivery areas."""
     global pending_emergency_command
     raw = "".join(ch for ch in str(payload) if ch.isprintable()).strip()[:160]
@@ -413,6 +423,7 @@ def register_emergency_signal(payload):
             "location": location, "map_point": map_point, "location_code": location_code,
             "affected_areas": affected_areas, "acknowledged": False,
             "x_cm": x_cm, "y_cm": y_cm, "raw": raw, "time": received_at,
+            "source": source,
         }
         status["events"].append(event)
         status["events"] = status["events"][-40:]
@@ -503,7 +514,7 @@ def add_microbit_event(event, detail):
 
 
 def handle_observation_packet(message):
-    """Update one station's live readings and report fire state changes."""
+    """Update station readings and stop/report when flame or gas is detected."""
     parsed = parse_observation_packet(message)
     if parsed is None:
         return False
@@ -518,19 +529,59 @@ def handle_observation_packet(message):
         stations = status.setdefault("observation_stations", {"1": None, "2": None})
         previous = stations.get(station)
         previous_flame = previous.get("flame") if previous else None
+        previous_gas = previous.get("gas_digital") if previous else None
         stations[station] = sample
 
     affected = "·".join(OBSERVATION_STATIONS[station])
-    if flame == FIRE_ACTIVE and previous_flame != FIRE_ACTIVE:
+    fire_detected = flame == FIRE_ACTIVE
+    gas_detected = gas_digital == GAS_ACTIVE
+    previous_fire_detected = previous_flame == FIRE_ACTIVE
+    previous_gas_detected = previous_gas == GAS_ACTIVE
+
+    if fire_detected and not previous_fire_detected:
         add_microbit_event(
             "OBS_FIRE_SIGNAL",
             f"관측소 {station} 화재 감지 · 영향 배송지 {affected}",
         )
-    elif flame != FIRE_ACTIVE and previous_flame == FIRE_ACTIVE:
+    elif not fire_detected and previous_fire_detected:
         add_microbit_event(
             "OBS_FIRE_CLEARED",
             f"관측소 {station} 화재 신호 해제 · 영향 배송지 {affected}",
         )
+    if gas_detected and not previous_gas_detected:
+        add_microbit_event(
+            "OBS_GAS_SIGNAL",
+            f"관측소 {station} 가스 감지 · 영향 배송지 {affected}",
+        )
+    elif not gas_detected and previous_gas_detected:
+        add_microbit_event(
+            "OBS_GAS_CLEARED",
+            f"관측소 {station} 가스 신호 해제 · 영향 배송지 {affected}",
+        )
+
+    # A sensor alarm becomes a normal active emergency: stop the dog, show the
+    # disaster eye pattern, and publish the alert for the dashboard controls.
+    # When both inputs are active, report fire first; the next packet can
+    # replace it with gas if the flame input clears while gas remains active.
+    detected_type = "FIRE" if fire_detected else "GAS" if gas_detected else None
+    if detected_type:
+        with status_lock:
+            active = status.get("active_emergencies", {}).get(station)
+            already_reported = (
+                active is not None
+                and active.get("source") == "obs_packet"
+                and active.get("emergency_type") == detected_type
+            )
+        if not already_reported:
+            code = "F" if detected_type == "FIRE" else "G"
+            register_emergency_signal(f"{code}{station}", source="obs_packet")
+    elif previous_fire_detected or previous_gas_detected:
+        with status_lock:
+            active = status.get("active_emergencies", {}).get(station)
+            sensor_alert_active = active is not None and active.get("source") == "obs_packet"
+        if sensor_alert_active:
+            clear_active_emergency(station)
+
     update_status(
         microbit_status=f"연결됨 · 관측소 {station} OBS 수신",
         microbit_last_rx=str(message).strip()[:160],
@@ -562,6 +613,9 @@ def handle_microbit_command(raw_command):
         raw_text = raw_text.split(":", 1)[1].strip()
     elif raw_text.upper().startswith("REPORT:EMERGENCY:"):
         raw_text = raw_text[len("REPORT:EMERGENCY:"):].strip()
+    elif raw_text.upper().startswith("RX:"):
+        # Older PC-gateway MakeCode project used RX:<signal>.
+        raw_text = raw_text.split(":", 1)[1].strip()
     if register_emergency_signal(raw_text):
         update_status(microbit_status="연결됨 · 재난 신호 수신")
         return True
@@ -679,9 +733,24 @@ def queue_emergency_command(action, location_code):
     return True, f"{label} 명령을 로보독에 전달했습니다."
 
 
-def microbit_serial_receiver():
-    """Optionally read a separately configured PC-side micro:bit serial bridge."""
-    if not MICROBIT_PORT:
+def update_microbit_port_state(port, connected, detail):
+    """Keep the dashboard connection indicator accurate for multiple receivers."""
+    with status_lock:
+        microbit_port_states[port] = (connected, detail)
+        connected_ports = [name for name, (is_connected, _) in microbit_port_states.items() if is_connected]
+        all_details = [f"{name}: {message}" for name, (_, message) in microbit_port_states.items()]
+        status["microbit_connected"] = bool(connected_ports)
+        status["microbit_port"] = ", ".join(MICROBIT_PORTS) or "미설정"
+        status["microbit_baudrate"] = MICROBIT_BAUDRATE
+        if connected_ports:
+            status["microbit_status"] = f"연결됨 · {', '.join(connected_ports)}"
+        elif all_details:
+            status["microbit_status"] = " · ".join(all_details)
+
+
+def microbit_serial_receiver(port):
+    """Read one PC-side micro:bit serial bridge and reconnect if unplugged."""
+    if not port:
         update_status(
             microbit_connected=False,
             microbit_status="PC micro:bit 시리얼 포트 미설정",
@@ -691,30 +760,15 @@ def microbit_serial_receiver():
         return
 
     if pyserial is None:
-        update_status(
-            microbit_connected=False,
-            microbit_status="pyserial 미설치",
-            microbit_port=MICROBIT_PORT,
-            microbit_baudrate=MICROBIT_BAUDRATE,
-        )
+        update_microbit_port_state(port, False, "pyserial 미설치")
         print("micro:bit 수신을 사용하려면 Python 환경에 pyserial을 설치하세요: python -m pip install pyserial")
         return
 
-    update_status(
-        microbit_connected=False,
-        microbit_status=f"{MICROBIT_PORT} 연결 중",
-        microbit_port=MICROBIT_PORT,
-        microbit_baudrate=MICROBIT_BAUDRATE,
-    )
+    update_microbit_port_state(port, False, "연결 중")
     while not microbit_shutdown.is_set():
         try:
-            with pyserial.Serial(MICROBIT_PORT, MICROBIT_BAUDRATE, timeout=0.25) as connection:
-                update_status(
-                    microbit_connected=True,
-                    microbit_status="연결됨",
-                    microbit_port=MICROBIT_PORT,
-                    microbit_baudrate=MICROBIT_BAUDRATE,
-                )
+            with pyserial.Serial(port, MICROBIT_BAUDRATE, timeout=0.25) as connection:
+                update_microbit_port_state(port, True, "연결됨")
                 while not microbit_shutdown.is_set():
                     raw = connection.readline()
                     if not raw:
@@ -727,14 +781,9 @@ def microbit_serial_receiver():
                     except Exception as exc:
                         print(f"micro:bit 재난 신호 처리 오류: {exc}")
         except Exception as exc:
-            update_status(
-                microbit_connected=False,
-                microbit_status=f"연결 안 됨 · {exc}",
-                microbit_port=MICROBIT_PORT,
-                microbit_baudrate=MICROBIT_BAUDRATE,
-            )
+            update_microbit_port_state(port, False, f"연결 안 됨 · {exc}")
             microbit_shutdown.wait(MICROBIT_RECONNECT_SECONDS)
-    update_status(microbit_connected=False, microbit_status="종료됨")
+    update_microbit_port_state(port, False, "종료됨")
 
 
 def peek_redirect_area():
@@ -2092,12 +2141,18 @@ def main():
         return
     server = ThreadingHTTPServer((DASHBOARD_HOST, DASHBOARD_PORT), DashboardHandler)
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
-    microbit_thread = threading.Thread(target=microbit_serial_receiver, daemon=True)
+    microbit_threads = [
+        threading.Thread(target=microbit_serial_receiver, args=(port,), daemon=True)
+        for port in MICROBIT_PORTS
+    ]
     server_thread.start()
-    microbit_thread.start()
+    for microbit_thread in microbit_threads:
+        microbit_thread.start()
     url = f"http://{DASHBOARD_HOST}:{DASHBOARD_PORT}/"
     print(f"관제 페이지: {url}")
-    print("브라우저에서 배송 시작/정지와 위험 재개를 조작할 수 있습니다.")
+    print("브라우저에서 배송 시작/정지와 재난 대응을 조작할 수 있습니다.")
+    if MICROBIT_PORTS:
+        print(f"micro:bit 수신 포트: {', '.join(MICROBIT_PORTS)} ({MICROBIT_BAUDRATE} baud)")
     try:
         webbrowser.open(url)
     except Exception:
@@ -2125,6 +2180,7 @@ if __name__ == "__main__":
         stop_dog()
         report_control_center("ERROR", str(exc))
         raise
+
 
 
 
