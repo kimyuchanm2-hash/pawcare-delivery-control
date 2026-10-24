@@ -81,9 +81,9 @@ except NameError:
     )
 DASHBOARD_FILE = SCRIPT_DIR / "pawcare_control.html"
 LOG_FILE = SCRIPT_DIR / "pawcare_delivery_log.csv"
-# Read newline-delimited emergency or observation packets from PC-attached
-# micro:bit receivers. Set MICROBIT_PORTS=COM17,COM7 to listen to multiple
-# groups with separate receiver micro:bits; MICROBIT_PORT remains supported.
+# Read newline-delimited emergency or observation packets from station
+# micro:bits attached to the PC (default COM17). Multiple ports can be
+# configured through MICROBIT_PORTS; MICROBIT_PORT remains supported.
 _microbit_ports_setting = os.environ.get("MICROBIT_PORTS")
 if _microbit_ports_setting is None:
     _microbit_ports_setting = os.environ.get("MICROBIT_PORT", "COM17")
