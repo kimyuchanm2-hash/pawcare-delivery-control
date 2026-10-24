@@ -1,87 +1,77 @@
-/**
- * 변수
- */
-// ==============================================================
-// 학습자료 5 — 환경센서 데이터 송신 예제
-// 마이크로비트 V2 + IO:BIT + 환경센서 키트
-// ==============================================================
-// 
-// 이 예제로 할 수 있는 것
-// - 학습자료 4와 똑같이 저장하면서,
-// - 라디오로 상태(OK/DANGER)를 다른 마이크로비트(예: 로보독)에 보낸다.
-// 
-// 받는 쪽 예제: 학습자료 6 (로보독 데이터 수신 예제)
-// → 두 마이크로비트의 radio.set_group 번호가 같아야 한다.
-// 
-// 필요한 메이크코드 확장
-// - OLED, bplab, datalogger
-// ==============================================================
-// 데이터로거 메모리 가득 처리
-datalogger.onLogFull(function () {
-    basic.showIcon(IconNames.No)
-    datalogger.deleteLog()
-    basic.clearScreen()
-})
-input.onGesture(Gesture.Shake, function () {
-    EARTHQUACK = "1"
-    state = "E1"
-})
-let gas = 0
-let temp = 0
-let EARTHQUACK = ""
-let state = ""
-let fire = 0
-// 임계값 (우리 교실에서 측정 후 조정)
-let GAS_DANGER = 800
-state = "OK"
-// 초기 설정
+// MakeCode JavaScript — 관측소 1 센서 송신 micro:bit
+// USB 시리얼은 PC(COM17), 라디오는 로보독 장착 micro:bit와 통신합니다.
+// 라디오 그룹은 두 micro:bit 모두 1로 맞춥니다.
+// 신호: E=흔들림(지진), F=화재, G=가스, H=무더위
+
+const STATION_ID = 1
+const GAS_DANGER = 800
+
 radio.setGroup(1)
-OLED.init(128, 64)
-OLED.clear()
-OLED.writeStringNewLine("TX START")
-datalogger.includeTimestamp(FlashLogTimeStampFormat.Seconds)
-datalogger.mirrorToSerial(true)
-datalogger.setColumnTitles(
-"Temp",
-"Gas",
-"Fire",
-"EARTHQUACK",
-"State"
-)
-input.soundLevel()
-basic.pause(2000)
-basic.forever(function () {
-    let hum = 0
-    // 센서 읽기
-    temp = input.temperature()
-    gas = pins.analogReadPin(AnalogReadWritePin.P1)
-    fire = pins.digitalReadPin(DigitalPin.P3)
-    // 상태 판단
-    if (fire == 0) {
-        state = "F1"
-    } else if (gas > GAS_DANGER) {
-        state = "G1"
-    } else if (temp > 30) {
-        state = "H1"
+serial.redirectToUSB()
+serial.setBaudRate(BaudRate.BaudRate115200)
+
+let lastSensorSignal = ""
+let lastEarthquakeTime = -5000
+
+function sendEmergency(signal: string) {
+    // 관측소 → PC Python(COM17) → HTML 관제
+    serial.writeLine("EMERGENCY:" + signal)
+    // 관측소 → 로보독에 장착된 수신 micro:bit
+    radio.sendString(signal)
+    basic.showString(signal)
+}
+
+input.onGesture(Gesture.Shake, function () {
+    if (input.runningTime() - lastEarthquakeTime > 5000) {
+        lastEarthquakeTime = input.runningTime()
+        sendEmergency("E" + STATION_ID)
     }
-    // OLED 출력
-    OLED.clear()
-    OLED.writeStringNewLine("=== TX ===")
-    OLED.writeStringNewLine("T:" + ("" + temp) + " H:" + ("" + hum))
-    OLED.writeStringNewLine("Gas:" + ("" + gas) + " F:" + ("" + fire))
-    OLED.writeStringNewLine("STATE: " + state)
-    OLED.writeStringNewLine("(group 19)")
-    // 데이터 기록
-    datalogger.log(
-    datalogger.createCV("Temp", temp),
-    datalogger.createCV("Gas", gas),
-    datalogger.createCV("Fire", fire),
-    datalogger.createCV("EARTHQUACK", EARTHQUACK),
-    datalogger.createCV("State", state)
-    )
-    // 라디오 송신
-    radio.sendString(state)
-    basic.showString(state)
-    basic.pause(2500)
 })
 
+basic.forever(function () {
+    let temperature = input.temperature()
+    let gasAnalog = pins.analogReadPin(AnalogPin.P1)
+    let fireRaw = pins.digitalReadPin(DigitalPin.P3)
+
+    // 화염 센서는 LOW(0)일 때 감지되는 설정입니다.
+    let fireActive = fireRaw == 0 ? 1 : 0
+    // 가스 아날로그 값이 기준값을 넘으면 감지 상태를 1로 기록합니다.
+    let gasActive = gasAnalog >= GAS_DANGER ? 1 : 0
+
+    // Python이 관제 화면의 관측소 센서 상태를 갱신합니다.
+    serial.writeLine(
+        "OBS," + STATION_ID +
+        "," + fireActive +
+        "," + gasAnalog +
+        "," + gasActive
+    )
+
+    let currentSignal = ""
+    if (fireActive == 1) {
+        currentSignal = "F" + STATION_ID
+    } else if (gasActive == 1) {
+        currentSignal = "G" + STATION_ID
+    } else if (temperature > 30) {
+        currentSignal = "H" + STATION_ID
+    }
+
+    // 센서 상태가 바뀔 때만 라디오 알림을 보냅니다.
+    if (currentSignal != lastSensorSignal) {
+        if (currentSignal != "") {
+            radio.sendString(currentSignal)
+            basic.showString(currentSignal)
+
+            // Python은 OBS로 화재/가스를 판정하므로,
+            // OBS에 없는 무더위는 별도 재난 신호로 PC에 보냅니다.
+            if (currentSignal.charAt(0) == "H") {
+                serial.writeLine("EMERGENCY:" + currentSignal)
+            }
+        } else if (lastSensorSignal != "") {
+            radio.sendString("OK" + STATION_ID)
+            basic.showIcon(IconNames.Yes)
+        }
+        lastSensorSignal = currentSignal
+    }
+
+    basic.pause(500)
+})
