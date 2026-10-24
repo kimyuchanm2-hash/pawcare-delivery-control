@@ -1,29 +1,27 @@
-PawCare 배송 관제 · RoboDog + micro:bit 관측소
+PawCare 배송 관제 · 성공했던 RoboDog 구성
 
 최종 연동 코드
-- robodog_abc_delivery.py : Thonny에서 실행하는 Python 제어 프로그램입니다. 배송, 인물·QR 확인, 재난 정지, 관제 HTML 서버를 처리합니다.
-- microbit_disaster_station_sender_makecode.ts : 관측소 센서 송신 micro:bit MakeCode JavaScript입니다.
-- microbit_robodog_radio_receiver_makecode.ts : RoboDog에 장착하는 라디오 수신 micro:bit MakeCode JavaScript입니다.
+- robodog_abc_delivery.py : Thonny에서 실행하는 Python 코드입니다. RoboDog 배송, 인물·QR 확인, 재난 신호 처리와 관제 HTML 서버를 실행합니다.
+- microbit_pc_receiver_makecode.ts : PC USB 수신 micro:bit용 MakeCode JavaScript입니다. 라디오 신호를 RX:<신호> 한 줄로 Python에 전달합니다.
+- microbit_disaster_station_sender_makecode.ts : 관측소 센서 송신 micro:bit용 MakeCode JavaScript입니다.
 
 장치 연결
-- 관측소 송신 micro:bit: PC USB COM17, 115200 baud. 센서값 OBS 패킷과 E/H 재난 신호를 Python에 보냅니다.
-- RoboDog 장착 수신 micro:bit: RoboDog에서 전원 공급. PC USB/COM 포트에는 연결하지 않습니다.
 - RoboDog: PC USB COM8.
-- 두 micro:bit의 라디오 그룹은 1입니다.
-- 포트가 다르면 Python 상단의 ROBODOG_PORT 또는 MICROBIT_PORT 환경 설정을 확인합니다.
+- PC 수신 게이트웨이 micro:bit: PC USB COM10, 115200 baud.
+- 관측소 송신 micro:bit: 라디오 그룹 1로 PC 수신 micro:bit에 신호 전송.
+- 두 micro:bit의 라디오 그룹은 1이어야 합니다.
+- Windows 장치 관리자에서 포트 번호를 확인하고, 다른 경우 Python 파일의 ROBODOG_PORT 또는 MICROBIT_PORT 설정을 바꿉니다.
 
-신호
-- E=흔들림 지진, F=화재, G=가스 유출, H=무더위.
-- 번호 1은 A·B, 2는 B·C 영향 위치입니다. 현재 관측소 코드는 번호 1로 설정되어 있습니다.
-- 관측소는 500ms마다 OBS,1,화재감지,가스아날로그,가스감지 값을 COM17로 보냅니다.
-- 화재·가스는 OBS 센서값으로 Python이 감지하고, 흔들림·무더위는 EMERGENCY:E1/H1 메시지로 전달합니다.
-- 재난 신호는 라디오로 RoboDog 장착 micro:bit에도 표시합니다.
+재난 신호
+- 앞 글자 E=지진, F=화재, G=가스 유출, H=무더위.
+- 뒤 숫자 1은 A·B, 2는 B·C 영향 위치입니다.
+- 신호가 오면 로보독이 멈추고 관제 화면에 재난을 표시합니다. 화면에서 대피 안내 또는 출발점 복귀를 선택합니다.
 
 실행 순서
-1. MakeCode에서 송신 코드를 관측소 micro:bit에, 수신 코드를 RoboDog 장착 micro:bit에 다운로드합니다.
-2. RoboDog를 COM8로, 관측소 micro:bit를 COM17로 PC에 연결합니다.
-3. Thonny에서 robodog_abc_delivery.py를 실행합니다.
-4. 브라우저에서 http://127.0.0.1:8765/ 를 엽니다.
-5. 시험은 로보독 다리를 바닥에서 띄우거나 안전한 낮은 속도로 진행하고 센서 임계값을 확인합니다.
+1. 관측소 송신 코드와 PC 수신 게이트웨이 코드를 각각 MakeCode에 올립니다.
+2. 두 micro:bit의 라디오 그룹이 1인지 확인합니다.
+3. 수신 micro:bit를 PC에 연결해 COM10인지 확인하고, RoboDog는 COM8로 연결합니다.
+4. robodog_abc_delivery.py와 pawcare_control.html을 같은 폴더에 둡니다.
+5. Thonny에서 robodog_abc_delivery.py를 실행하고 브라우저에서 http://127.0.0.1:8765/ 를 엽니다.
 
-GitHub Pages는 화면을 보여주는 정적 페이지입니다. 실제 COM 통신과 로봇 제어에는 PC에서 Python 프로그램이 실행 중이어야 합니다. 코드를 올린 것과 로보독 실기기에서 정상 작동을 확인한 것은 별개이므로 실제 장비에서 다시 시험하세요.
+이 묶음은 이전에 성공했던 로보독 구성의 코드입니다. 현재 장비의 포트와 실기기 동작은 다시 확인하세요. GitHub Pages는 정적 화면이며, 실제 COM 통신과 로봇 제어는 PC에서 실행한 Python 프로그램이 담당합니다.
